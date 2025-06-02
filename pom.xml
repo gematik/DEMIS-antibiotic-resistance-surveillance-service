@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>de.gematik.demis</groupId>
+        <artifactId>spring-parent</artifactId>
+        <version>2.9.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <artifactId>antibiotic-resistance-surveillance-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>Antibiotic-Resistance-Surveillance-Service</name>
+    <packaging>jar</packaging>
+    <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
+
+    <licenses>
+        <license>
+            <name>Licensed under the EUPL 1.2</name>
+            <url>https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>21</java.version>
+        <openapitools-jackson-databind-nullable-version>0.2.6</openapitools-jackson-databind-nullable-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>de.gematik.demis</groupId>
+            <artifactId>service-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-base</artifactId>
+            <version>${hapi.fhir.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.demis</groupId>
+            <artifactId>fhir-parser-library</artifactId>
+            <version>${fhir.parser.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-structures-dstu2</artifactId>
+            <version>${hapi.fhir.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>${openapitools-jackson-databind-nullable-version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>
+                                ${project.basedir}/spec/api-spec.yaml
+                            </inputSpec>
+                            <skipIfSpecIsUnchanged>true</skipIfSpecIsUnchanged>
+                            <generatorName>spring</generatorName>
+                            <modelNameSuffix>DTO</modelNameSuffix>
+                            <apiPackage>de.gematik.demis.ars.api</apiPackage>
+                            <modelPackage>de.gematik.demis.ars.api.model</modelPackage>
+                            <configOptions>
+                                <sourceFolder>src/generated/java/main</sourceFolder>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useTags>true</useTags>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

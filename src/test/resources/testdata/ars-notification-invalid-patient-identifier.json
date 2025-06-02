@@ -1,0 +1,399 @@
+{
+  "resourceType": "Bundle",
+  "id": "C5C0472F-F686-4BC1-800B-4FDD7EDE239C",
+  "meta": {
+    "profile": [
+      "https://demis.rki.de/fhir/ars/StructureDefinition/Bundle"
+    ]
+  },
+  "type": "document",
+  "identifier": {
+    "system": "http:\/\/www.Labor-Celle.de\/identifiers\/bundle\/identifier",
+    "value": "5ED0E3B6-5BF9-4B80-B05E-F44D6F51CE83"
+  },
+  "timestamp": "2023-01-04T19:52:00.000+01:00",
+  "entry": [
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Composition/89069D8A-4FED-4BA5-8E82-F99B04BDCD29",
+      "resource": {
+        "resourceType": "Composition",
+        "id": "89069D8A-4FED-4BA5-8E82-F99B04BDCD29",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Composition"
+          ]
+        },
+        "status": "final",
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/900000000000207008/version/20240801",
+              "code": "4241000179101"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient\/2DA21025-AF83-3A4C-028A-F7118F7E2118"
+        },
+        "date": "2023-01-04T19:52:00.000+01:00",
+        "author": [
+          {
+            "reference": "Device/BC40E9CF-B2E8-46AC-86B4-65278D3B1E1E"
+          }
+        ],
+        "title": "Laboratory Report",
+        "section": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "11502-2",
+                  "display": "Laboratory report"
+                }
+              ]
+            },
+            "entry": [
+              {
+                "reference": "DiagnosticReport/99850B9A-99AC-4A60-9968-4A98C806A200"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Device/BC40E9CF-B2E8-46AC-86B4-65278D3B1E1E",
+      "resource": {
+        "resourceType": "Device",
+        "id": "BC40E9CF-B2E8-46AC-86B4-65278D3B1E1E",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Software"
+          ]
+        },
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "706687001",
+              "display": "Software (physical object)"
+            }
+          ]
+        },
+        "manufacturer": "MediTrack Pro",
+        "deviceName": [
+          {
+            "type": "user-friendly-name",
+            "name": "MediCore"
+          }
+        ],
+        "version": [
+          {
+            "value": "2024-11"
+          }
+        ],
+        "owner": {
+          "reference": "Organization\/AB0209DF-5C54-4AAD-A30E-F9697B65E9B9"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Organization/AB0209DF-5C54-4AAD-A30E-F9697B65E9B9",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "AB0209DF-5C54-4AAD-A30E-F9697B65E9B9",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/DataSender"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "https://demis.rki.de/fhir/NamingSystem/DemisParticipantId",
+            "value": "67404"
+          }
+        ],
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "https://demis.rki.de/fhir/CodeSystem/organizationType",
+                "version": "1.1.0",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "name": "Labor Celle"
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/DiagnosticReport/99850B9A-99AC-4A60-9968-4A98C806A200",
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "99850B9A-99AC-4A60-9968-4A98C806A200",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/DiagnosticReport"
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "11502-2"
+            }
+          ]
+        },
+        "basedOn": [
+          {
+            "reference": "ServiceRequest/6E217BD2-C513-9906-4902-63694FD409F9"
+          }
+        ],
+        "status": "final",
+        "subject": {
+          "reference": "Patient\/2DA21025-AF83-3A4C-028A-F7118F7E2118"
+        },
+        "result": [
+          {
+            "reference": "Observation\/1BF51DF5-5EC0-37DB-A914-39A437EA0195"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/ServiceRequest/6E217BD2-C513-9906-4902-63694FD409F9",
+      "resource": {
+        "resourceType": "ServiceRequest",
+        "id": "6E217BD2-C513-9906-4902-63694FD409F9",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/ServiceRequest"
+          ]
+        },
+        "status": "completed",
+        "intent": "order",
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/900000000000207008/version/20240801",
+              "code": "168186002"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient\/2DA21025-AF83-3A4C-028A-F7118F7E2118"
+        },
+        "requester": {
+          "reference": "PractitionerRole\/594F5E05-B1DE-4778-BD08-B7B1236A07D1"
+        },
+        "specimen": [
+          {
+            "reference": "Specimen/2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "2DA21025-AF83-3A4C-028A-F7118F7E2118",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Patient"
+          ]
+        },
+        "identifier": [{
+          "system": "InVaLiDsYsTeM",
+          "value": "InVaLiDvAlUe"
+        },
+          {
+            "system": "invalid%%",
+            "value": "invalid%%"
+          }],
+        "gender": "female",
+        "birthDate": "1969-02"
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Specimen/2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Specimen"
+          ]
+        },
+        "accessionIdentifier": {
+          "system": "http:\/\/www.Labor-Celle.de\/identifiers\/specimen\/accessionIdentifier",
+          "value": "23-000034"
+        },
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/900000000000207008/version/20240801",
+              "code": "257261003",
+              "display": "Swab (specimen)"
+            }
+          ],
+          "text": "Abstrich"
+        },
+        "subject": {
+          "reference": "Patient\/2DA21025-AF83-3A4C-028A-F7118F7E2118"
+        },
+        "receivedTime": "2023-01-04",
+        "request": [
+          {
+            "reference": "ServiceRequest/6E217BD2-C513-9906-4902-63694FD409F9"
+          }
+        ],
+        "collection": {
+          "collectedDateTime": "2023-01-04",
+          "bodySite": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/900000000000207008/version/20240801",
+                "code": "261665006",
+                "display": "Unknown (qualifier value)"
+              }
+            ],
+            "text": "nicht ermittelbar"
+          }
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/PractitionerRole/594F5E05-B1DE-4778-BD08-B7B1236A07D1",
+      "resource": {
+        "resourceType": "PractitionerRole",
+        "id": "594F5E05-B1DE-4778-BD08-B7B1236A07D1",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/PractitionerRole"
+          ]
+        },
+        "specialty": [
+          {
+            "coding": [
+              {
+                "system": "https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BAR2_ARZTNRFACHGRUPPE",
+                "version": "1.03",
+                "code": "99",
+                "display": "weitere Fachgruppen"
+              }
+            ]
+          }
+        ],
+        "organization": {
+          "reference": "Organization\/E42C4740-9A49-47E8-A59C-C1FB3BC080B0"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Organization/E42C4740-9A49-47E8-A59C-C1FB3BC080B0",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "E42C4740-9A49-47E8-A59C-C1FB3BC080B0",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/PhysicianOfficeOrOther"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "https://demis.rki.de/fhir/NamingSystem/ArsOrganizationID",
+            "value": "67404000001"
+          }
+        ],
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "https://demis.rki.de/fhir/CodeSystem/organizationType",
+                "version": "1.1.0",
+                "code": "physicianOffice"
+              }
+            ]
+          }
+        ],
+        "address": [
+          {
+            "postalCode": "o"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/1BF51DF5-5EC0-37DB-A914-39A437EA0195",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "1BF51DF5-5EC0-37DB-A914-39A437EA0195",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "41852-5",
+              "display": "Microorganism or agent identified in Specimen"
+            }
+          ]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20240515",
+              "code": "84101006",
+              "display": "Humanes Coronavirus"
+            }
+          ],
+          "text": "Coronavirus"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/900000000000207008/version/20240801",
+                "code": "10828004",
+                "display": "Positive (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/900000000000207008/version/20240801",
+              "code": "83581000052107",
+              "display": "Matrix assisted laser desorption ionization time of flight mass spectrometry technique (qualifier value)"
+            }
+          ],
+          "text": "MALDI-TOF"
+        },
+        "issued": "2023-01-04T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient\/2DA21025-AF83-3A4C-028A-F7118F7E2118"
+        },
+        "specimen": {
+          "reference": "Specimen\/2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4"
+        }
+      }
+    }
+  ]
+}

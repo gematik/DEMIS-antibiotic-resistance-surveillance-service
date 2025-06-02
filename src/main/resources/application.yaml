@@ -1,0 +1,18 @@
+spring:
+  config:
+    import: classpath:/base-config-application.yaml
+info:
+  app:
+    name: '@project.name@'
+    version: '@project.version@'
+
+ars:
+  outcome-issue-threshold: warning
+  validation:
+    url: ${DEMIS_NETWORK_VALIDATION_SERVICE_ADDRESS:http://validation-service.demis.svc.cluster.local}
+  ces:
+    url: ${DEMIS_NETWORK_CONTENT_ENRICHMENT_SERVICE_ADDRESS:http://context-enrichment-service.demis.svc.cluster.local}
+
+feature:
+  flag:
+    ars_validation_enabled: false

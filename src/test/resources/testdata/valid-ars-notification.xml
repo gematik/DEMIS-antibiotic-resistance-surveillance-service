@@ -1,0 +1,349 @@
+<!--
+  #%L
+  Antibiotic-Resistance-Surveillance-Service
+  %%
+  Copyright (C) 2025 gematik GmbH
+  %%
+  Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the
+  European Commission – subsequent versions of the EUPL (the "Licence").
+  You may not use this work except in compliance with the Licence.
+  
+  You find a copy of the Licence in the "Licence" file or at
+  https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the Licence is distributed on an "AS IS" basis,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+  In case of changes by gematik find details in the "Readme" file.
+  
+  See the Licence for the specific language governing permissions and limitations under the Licence.
+  
+  *******
+  
+  For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+  #L%
+  -->
+<Bundle xmlns="http://hl7.org/fhir">
+   <id value="C5C0472F-F686-4BC1-800B-4FDD7EDE239C"></id>
+   <meta>
+      <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Bundle"></profile>
+   </meta>
+   <identifier>
+      <system value="http://www.Labor-Celle.de/identifiers/bundle/identifier"></system>
+      <value value="5ED0E3B6-5BF9-4B80-B05E-F44D6F51CE83"></value>
+   </identifier>
+   <type value="document"></type>
+   <timestamp value="2023-01-04T19:52:00.000+01:00"></timestamp>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Composition/89069D8A-4FED-4BA5-8E82-F99B04BDCD29"></fullUrl>
+      <resource>
+         <Composition xmlns="http://hl7.org/fhir">
+            <id value="89069D8A-4FED-4BA5-8E82-F99B04BDCD29"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Composition"></profile>
+            </meta>
+            <status value="final"></status>
+            <type>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <version value="http://snomed.info/sct/900000000000207008/version/20240801"></version>
+                  <code value="4241000179101"></code>
+               </coding>
+            </type>
+            <subject>
+               <reference value="Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118"></reference>
+            </subject>
+            <date value="2023-01-04T19:52:00.000+01:00"></date>
+            <author>
+               <reference value="Device/BC40E9CF-B2E8-46AC-86B4-65278D3B1E1E"></reference>
+            </author>
+            <title value="Laboratory Report"></title>
+            <section>
+               <code>
+                  <coding>
+                     <system value="http://loinc.org"></system>
+                     <code value="11502-2"></code>
+                     <display value="Laboratory report"></display>
+                  </coding>
+               </code>
+               <entry>
+                  <reference value="DiagnosticReport/99850B9A-99AC-4A60-9968-4A98C806A200"></reference>
+               </entry>
+            </section>
+         </Composition>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Device/BC40E9CF-B2E8-46AC-86B4-65278D3B1E1E"></fullUrl>
+      <resource>
+         <Device xmlns="http://hl7.org/fhir">
+            <id value="BC40E9CF-B2E8-46AC-86B4-65278D3B1E1E"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Software"></profile>
+            </meta>
+            <manufacturer value="MediTrack Pro"></manufacturer>
+            <deviceName>
+               <name value="MediCore"></name>
+               <type value="user-friendly-name"></type>
+            </deviceName>
+            <type>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <code value="706687001"></code>
+                  <display value="Software (physical object)"></display>
+               </coding>
+            </type>
+            <version>
+               <value value="2024-11"></value>
+            </version>
+            <owner>
+               <reference value="Organization/AB0209DF-5C54-4AAD-A30E-F9697B65E9B9"></reference>
+            </owner>
+         </Device>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Organization/AB0209DF-5C54-4AAD-A30E-F9697B65E9B9"></fullUrl>
+      <resource>
+         <Organization xmlns="http://hl7.org/fhir">
+            <id value="AB0209DF-5C54-4AAD-A30E-F9697B65E9B9"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/DataSender"></profile>
+            </meta>
+            <identifier>
+               <system value="https://demis.rki.de/fhir/NamingSystem/DemisParticipantId"></system>
+               <value value="67404"></value>
+            </identifier>
+            <type>
+               <coding>
+                  <system value="https://demis.rki.de/fhir/CodeSystem/organizationType"></system>
+                  <version value="1.1.0"></version>
+                  <code value="laboratory"></code>
+               </coding>
+            </type>
+            <name value="Labor Celle"></name>
+         </Organization>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/DiagnosticReport/99850B9A-99AC-4A60-9968-4A98C806A200"></fullUrl>
+      <resource>
+         <DiagnosticReport xmlns="http://hl7.org/fhir">
+            <id value="99850B9A-99AC-4A60-9968-4A98C806A200"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/DiagnosticReport"></profile>
+            </meta>
+            <basedOn>
+               <reference value="ServiceRequest/6E217BD2-C513-9906-4902-63694FD409F9"></reference>
+            </basedOn>
+            <status value="final"></status>
+            <code>
+               <coding>
+                  <system value="http://loinc.org"></system>
+                  <version value="2.78"></version>
+                  <code value="11502-2"></code>
+               </coding>
+            </code>
+            <subject>
+               <reference value="Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118"></reference>
+            </subject>
+            <result>
+               <reference value="Observation/1BF51DF5-5EC0-37DB-A914-39A437EA0195"></reference>
+            </result>
+         </DiagnosticReport>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/ServiceRequest/6E217BD2-C513-9906-4902-63694FD409F9"></fullUrl>
+      <resource>
+         <ServiceRequest xmlns="http://hl7.org/fhir">
+            <id value="6E217BD2-C513-9906-4902-63694FD409F9"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/ServiceRequest"></profile>
+            </meta>
+            <status value="completed"></status>
+            <intent value="order"></intent>
+            <code>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <version value="http://snomed.info/sct/900000000000207008/version/20240801"></version>
+                  <code value="168186002"></code>
+               </coding>
+            </code>
+            <subject>
+               <reference value="Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118"></reference>
+            </subject>
+            <requester>
+               <reference value="PractitionerRole/594F5E05-B1DE-4778-BD08-B7B1236A07D1"></reference>
+            </requester>
+            <specimen>
+               <reference value="Specimen/2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4"></reference>
+            </specimen>
+         </ServiceRequest>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118"></fullUrl>
+      <resource>
+         <Patient xmlns="http://hl7.org/fhir">
+            <id value="2DA21025-AF83-3A4C-028A-F7118F7E2118"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Patient"></profile>
+            </meta>
+            <identifier>
+               <system value="https://demis.rki.de/fhir/NamingSystem/CommonPatientPseudonym"></system>
+               <value value="urn:uuid:E2539906-3C28-4969-B150-724D6BAAC0D1"></value>
+            </identifier>
+            <identifier>
+               <system value="https://demis.rki.de/fhir/NamingSystem/CommonPatientPseudonym"></system>
+               <value value="urn:uuid:1836C39D-F0F5-420E-AACE-E476F3D3D440"></value>
+            </identifier>
+            <gender value="female"></gender>
+            <birthDate value="1969-02"></birthDate>
+         </Patient>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Specimen/2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4"></fullUrl>
+      <resource>
+         <Specimen xmlns="http://hl7.org/fhir">
+            <id value="2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Specimen"></profile>
+            </meta>
+            <accessionIdentifier>
+               <system value="http://www.Labor-Celle.de/identifiers/specimen/accessionIdentifier"></system>
+               <value value="23-000034"></value>
+            </accessionIdentifier>
+            <type>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <version value="http://snomed.info/sct/900000000000207008/version/20240801"></version>
+                  <code value="257261003"></code>
+                  <display value="Swab (specimen)"></display>
+               </coding>
+               <text value="Abstrich"></text>
+            </type>
+            <subject>
+               <reference value="Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118"></reference>
+            </subject>
+            <receivedTime value="2023-01-04"></receivedTime>
+            <request>
+               <reference value="ServiceRequest/6E217BD2-C513-9906-4902-63694FD409F9"></reference>
+            </request>
+            <collection>
+               <collectedDateTime value="2023-01-04"></collectedDateTime>
+               <bodySite>
+                  <coding>
+                     <system value="http://snomed.info/sct"></system>
+                     <version value="http://snomed.info/sct/900000000000207008/version/20240801"></version>
+                     <code value="261665006"></code>
+                     <display value="Unknown (qualifier value)"></display>
+                  </coding>
+                  <text value="nicht ermittelbar"></text>
+               </bodySite>
+            </collection>
+         </Specimen>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/PractitionerRole/594F5E05-B1DE-4778-BD08-B7B1236A07D1"></fullUrl>
+      <resource>
+         <PractitionerRole xmlns="http://hl7.org/fhir">
+            <id value="594F5E05-B1DE-4778-BD08-B7B1236A07D1"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/PractitionerRole"></profile>
+            </meta>
+            <organization>
+               <reference value="Organization/E42C4740-9A49-47E8-A59C-C1FB3BC080B0"></reference>
+            </organization>
+            <specialty>
+               <coding>
+                  <system value="https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BAR2_ARZTNRFACHGRUPPE"></system>
+                  <version value="1.03"></version>
+                  <code value="99"></code>
+                  <display value="weitere Fachgruppen"></display>
+               </coding>
+            </specialty>
+         </PractitionerRole>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Organization/E42C4740-9A49-47E8-A59C-C1FB3BC080B0"></fullUrl>
+      <resource>
+         <Organization xmlns="http://hl7.org/fhir">
+            <id value="E42C4740-9A49-47E8-A59C-C1FB3BC080B0"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/PhysicianOfficeOrOther"></profile>
+            </meta>
+            <identifier>
+               <system value="https://demis.rki.de/fhir/NamingSystem/ArsOrganizationID"></system>
+               <value value="67404000001"></value>
+            </identifier>
+            <type>
+               <coding>
+                  <system value="https://demis.rki.de/fhir/CodeSystem/organizationType"></system>
+                  <version value="1.1.0"></version>
+                  <code value="physicianOffice"></code>
+               </coding>
+            </type>
+            <address>
+               <postalCode value="o"></postalCode>
+            </address>
+         </Organization>
+      </resource>
+   </entry>
+   <entry>
+      <fullUrl value="https://demis.rki.de/fhir/ars/Observation/1BF51DF5-5EC0-37DB-A914-39A437EA0195"></fullUrl>
+      <resource>
+         <Observation xmlns="http://hl7.org/fhir">
+            <id value="1BF51DF5-5EC0-37DB-A914-39A437EA0195"></id>
+            <meta>
+               <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Observation"></profile>
+            </meta>
+            <status value="final"></status>
+            <code>
+               <coding>
+                  <system value="http://loinc.org"></system>
+                  <version value="2.78"></version>
+                  <code value="41852-5"></code>
+                  <display value="Microorganism or agent identified in Specimen"></display>
+               </coding>
+            </code>
+            <subject>
+               <reference value="Patient/2DA21025-AF83-3A4C-028A-F7118F7E2118"></reference>
+            </subject>
+            <issued value="2023-01-04T00:00:00.000+01:00"></issued>
+            <valueCodeableConcept>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <version value="http://snomed.info/sct/11000274103/version/20240515"></version>
+                  <code value="84101006"></code>
+                  <display value="Humanes Coronavirus"></display>
+               </coding>
+               <text value="Coronavirus"></text>
+            </valueCodeableConcept>
+            <interpretation>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <version value="http://snomed.info/sct/900000000000207008/version/20240801"></version>
+                  <code value="10828004"></code>
+                  <display value="Positive (qualifier value)"></display>
+               </coding>
+            </interpretation>
+            <method>
+               <coding>
+                  <system value="http://snomed.info/sct"></system>
+                  <version value="http://snomed.info/sct/900000000000207008/version/20240801"></version>
+                  <code value="83581000052107"></code>
+                  <display value="Matrix assisted laser desorption ionization time of flight mass spectrometry technique (qualifier value)"></display>
+               </coding>
+               <text value="MALDI-TOF"></text>
+            </method>
+            <specimen>
+               <reference value="Specimen/2FFCC1F9-5EA8-7ECB-2AEF-AA06832C74E4"></reference>
+            </specimen>
+         </Observation>
+      </resource>
+   </entry>
+</Bundle>

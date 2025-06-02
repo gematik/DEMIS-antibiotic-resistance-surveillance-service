@@ -1,0 +1,246 @@
+openapi: 3.0.3
+info:
+  title: Antibiotic Resistance Surveillance (ARS) Service
+  version: 1.0.0
+  description: 'API specification of all exposed paths by the ars-service'
+  contact:
+    name: gematik GmbH
+    email: demis-entwicklung@gematik.de
+    url: "https://www.gematik.de"
+
+servers:
+  - url: 'https://ingress.local/ars'
+    description: Localhost server
+
+paths:
+
+  /fhir/$process-notification:
+
+    post:
+      summary: Create a disease notification that will be send to the specified target
+      tags:
+        - notifications
+      security:
+        - bearerAuth: [ ]
+        - remoteIP: [ ]
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer token for authentication.
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            enum:
+              - application/json
+              - application/xml
+              - application/json+fhir
+              - application/fhir+json
+          description: Tells whether the request body is in JSON or XML format.
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            enum:
+              - application/json
+              - application/xml
+          description: Tells whether the response body is in JSON or XML format. If not set the content-type will be used
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              description: Raw JSON string representing the ARS-Data-Collection. For exact
+                structure, see the FHIR specification at simplifier https://simplifier.net/rki.demis.ars
+          application/xml:
+            schema:
+              type: string
+              description: Raw XML string representing the ARS-Data-Collection. For exact
+                structure, see the FHIR specification at simplifier https://simplifier.net/rki.demis.ars
+      responses:
+        200:
+          description: Successful request.
+          content:
+            application/json:
+              schema:
+                type: string
+                description: 'TODO: have to be defined'
+            application/xml:
+              schema:
+                type: string
+                description: 'TODO: have to be defined'
+        400:
+          description: The request will not be processed due to a client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: The request will not be processed due to invalid authentication
+            credentials.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: The request will not be processed due to insufficient rights.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        406:
+          description: The server is unwilling to process the content (honeypot case).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        415:
+          description: No or wrong content-type provided.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        422:
+          description: The server understands the content type of the request entity,
+            but it was unable to process the contained instructions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationOutcome"
+        500:
+          description: The server encountered an unexpected condition that prevented
+            it from fulfilling the request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+
+  schemas:
+
+    Parameters:
+      type: object
+      properties:
+        resourceType:
+          type: string
+          example: Parameters
+        parameter:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/Identifier'
+              - $ref: '#/components/schemas/Identifier'
+              - $ref: '#/components/schemas/OperationOutcome'
+          minItems: 3
+          maxItems: 4
+
+    Identifier:
+      type: object
+      properties:
+        name:
+          type: string
+          example: bundleIdentifier
+        valueIdentifier:
+          type: object
+          properties:
+            system:
+              type: string
+              example: https://demis.rki.de/fhir/NamingSystem/NotificationBundleId
+            value:
+              type: string
+              format: uuid
+              example: 714ad4d7-8dd3-4b16-b189-d9bdb9721ed4
+
+    OperationOutcome:
+      type: object
+      description: Represents the output of a FHIR operation.
+      properties:
+        resourceType:
+          type: string
+          enum:
+            - OperationOutput
+          description: The type of resource, which is always `OperationOutput` for this schema.
+        issue:
+          type: array
+          description: A list of issues encountered during the operation.
+          items:
+            type: object
+            properties:
+              severity:
+                type: string
+                enum:
+                  - fatal
+                  - error
+                  - warning
+                  - information
+                description: The severity of the issue.
+              code:
+                type: string
+                description: A code that provides more detail about the issue.
+              details:
+                type: object
+                description: Additional details about the issue.
+                properties:
+                  text:
+                    type: string
+                    description: A human-readable explanation of the issue.
+              diagnostics:
+                type: string
+                description: Additional diagnostic information about the issue.
+              location:
+                type: array
+                items:
+                  type: string
+                description: The FHIRPath locations of the elements related to the issue.
+              expression:
+                type: array
+                items:
+                  type: string
+                description: The FHIRPath expressions describing the logical elements of the issue.
+      required:
+        - resourceType
+    ErrorResponse:
+      description: response structure for error use case
+      type: object
+      properties:
+        id:
+          description: The id of the error.
+          type: string
+          example: a408e826-aad4-4ecc-ad44-c97cf3dbc01f
+        status:
+          description: The http status code.
+          type: integer
+          example: 400
+        errorCode:
+          description: The error code.
+          type: string
+          example: validation_error
+        detail:
+          description: The error message.
+          type: string
+          example: validation error was occurred.
+        timestamp:
+          format: date-time
+          description: The timestamp of the request
+          type: string
+          example: '2022-12-25T14:54:19.681743Z'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+    remoteIP:
+      type: apiKey
+      in: header
+      name: x-real-ip
+      description: All requests must include the `x-real-ip` header containing your ip address.
+
+security:
+  - bearerAuth: []
