@@ -1,0 +1,2821 @@
+{
+  "resourceType": "Bundle",
+  "id": "9AB9F65E-DC71-443C-B3A5-176F9AA05862",
+  "meta": {
+    "profile": [
+      "https://demis.rki.de/fhir/ars/StructureDefinition/Bundle"
+    ]
+  },
+  "type": "document",
+  "identifier": {
+    "system": "http://www.Labor-Ostholstein.de/identifiers/bundle/identifier",
+    "value": "F32AC474-27C8-4AA5-9C1E-F4315E1B3EB3"
+  },
+  "timestamp": "2024-01-01T15:04:00.000+01:00",
+  "entry": [
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Composition/3A7FDB4A-E724-4958-B889-DFA50A435418",
+      "resource": {
+        "resourceType": "Composition",
+        "id": "3A7FDB4A-E724-4958-B889-DFA50A435418",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Composition"
+          ]
+        },
+        "status": "final",
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "4241000179101"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "date": "2024-01-01T15:04:00.000+01:00",
+        "author": [
+          {
+            "reference": "Device/53092FA5-9A93-41A6-BA34-5C291B6A0133"
+          }
+        ],
+        "title": "Laboratory Report",
+        "section": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "11502-2",
+                  "display": "Laboratory report"
+                }
+              ]
+            },
+            "entry": [
+              {
+                "reference": "DiagnosticReport/246635CE-3E1A-4B1E-94A5-616C377E3F97"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Device/53092FA5-9A93-41A6-BA34-5C291B6A0133",
+      "resource": {
+        "resourceType": "Device",
+        "id": "53092FA5-9A93-41A6-BA34-5C291B6A0133",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Software"
+          ]
+        },
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "706687001",
+              "display": "Software (physical object)"
+            }
+          ]
+        },
+        "manufacturer": "MediTrack Pro",
+        "deviceName": [
+          {
+            "type": "user-friendly-name",
+            "name": "MediCore"
+          }
+        ],
+        "version": [
+          {
+            "value": "2024-11"
+          }
+        ],
+        "owner": {
+          "reference": "Organization/E2A06143-69F5-431F-93C2-189D3DB6170A"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Organization/E2A06143-69F5-431F-93C2-189D3DB6170A",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "E2A06143-69F5-431F-93C2-189D3DB6170A",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/DataSender"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "https://demis.rki.de/fhir/NamingSystem/DemisParticipantId",
+            "value": "69612"
+          }
+        ],
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "https://demis.rki.de/fhir/CodeSystem/organizationType",
+                "version": "1.1.0",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "name": "Labor Ostholstein"
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/DiagnosticReport/246635CE-3E1A-4B1E-94A5-616C377E3F97",
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "246635CE-3E1A-4B1E-94A5-616C377E3F97",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/DiagnosticReport"
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "11502-2"
+            }
+          ]
+        },
+        "basedOn": [
+          {
+            "reference": "ServiceRequest/28DD0C3C-3E52-40BA-E362-BDC426770C5E"
+          }
+        ],
+        "status": "final",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "result": [
+          {
+            "reference": "Observation/DE1958BA-4A4F-406E-98DD-1BCA964788EE"
+          },
+          {
+            "reference": "Observation/1F983D32-8048-4266-9E40-1D19899E2B9A"
+          },
+          {
+            "reference": "Observation/5C6E6392-63DA-48D0-AB98-26595CE6888A"
+          },
+          {
+            "reference": "Observation/590A3250-7385-4126-9353-290E6D457CF5"
+          },
+          {
+            "reference": "Observation/0BAB0309-3600-4FBC-93B9-38E5A3AAAC27"
+          },
+          {
+            "reference": "Observation/2EFD9EA8-0531-4C7A-B4F2-39207C00A607"
+          },
+          {
+            "reference": "Observation/8F53807B-9AF5-428C-A0B1-4D31D877A809"
+          },
+          {
+            "reference": "Observation/69F73F6F-113C-492A-95C4-578711811AA4"
+          },
+          {
+            "reference": "Observation/8C093C9D-772B-47FB-A171-59584F007B3B"
+          },
+          {
+            "reference": "Observation/6AB9F388-025D-4236-912E-68105613AC0B"
+          },
+          {
+            "reference": "Observation/0FDE729B-063D-46A0-82DC-6E9346B2674A"
+          },
+          {
+            "reference": "Observation/E0297211-CE3E-45E4-B8B1-7271A21C42AF"
+          },
+          {
+            "reference": "Observation/3FFD8553-AB90-4514-9BF0-747B6596A859"
+          },
+          {
+            "reference": "Observation/1D9E9DA1-6255-48CB-ABDD-76D12E45619A"
+          },
+          {
+            "reference": "Observation/DC1C7E0D-F0AF-46D2-BAB6-8AA72AB25D7D"
+          },
+          {
+            "reference": "Observation/B90586D7-CEFF-49D1-97B1-A9F8C79C684F"
+          },
+          {
+            "reference": "Observation/E2463A20-4E7D-4792-A554-AB11A5C8A6C4"
+          },
+          {
+            "reference": "Observation/3EAF4552-CA24-42A2-AD3F-AE06541023E3"
+          },
+          {
+            "reference": "Observation/29F14133-067A-4888-990B-B6D75847D864"
+          },
+          {
+            "reference": "Observation/A54A33E9-FDEF-4B31-B0C1-BC00A3AEEC91"
+          },
+          {
+            "reference": "Observation/7C6BF1C2-4845-44A1-ACFB-CA3030BFCEE0"
+          },
+          {
+            "reference": "Observation/52D2331C-C511-4D34-8D23-CE398022A218"
+          },
+          {
+            "reference": "Observation/5C399667-6313-4097-A6D8-E0E4BA85A3DA"
+          },
+          {
+            "reference": "Observation/5FA167AD-31FC-4CAF-9078-F67A2D8DEE98"
+          },
+          {
+            "reference": "Observation/BA8D549C-0926-4B90-9085-FFE1E08F1EF3"
+          },
+          {
+            "reference": "Observation/66F633D2-B9A2-4B0A-B0F5-3179315495B7"
+          },
+          {
+            "reference": "Observation/7C51B44B-350C-4FC3-972E-32A44A02D4B2"
+          },
+          {
+            "reference": "Observation/DB228946-98F0-4C11-A702-3885E20F94A1"
+          },
+          {
+            "reference": "Observation/007856D8-B674-409B-90C2-3FC9FEF18BF1"
+          },
+          {
+            "reference": "Observation/550F0E00-17DD-4247-B2DE-60691103319B"
+          },
+          {
+            "reference": "Observation/EC3165D3-2E0A-4812-917B-63CEE139C834"
+          },
+          {
+            "reference": "Observation/2B4134FE-B0B9-4005-9819-76343E41BFF9"
+          },
+          {
+            "reference": "Observation/56E0FEDD-089F-4345-98DA-E77AAFC4E8DA"
+          },
+          {
+            "reference": "Observation/4931D0BC-7944-46EA-B4E9-EBA31F75AF88"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/ServiceRequest/28DD0C3C-3E52-40BA-E362-BDC426770C5E",
+      "resource": {
+        "resourceType": "ServiceRequest",
+        "id": "28DD0C3C-3E52-40BA-E362-BDC426770C5E",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/ServiceRequest"
+          ]
+        },
+        "status": "completed",
+        "intent": "order",
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "168186002"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": [
+          {
+            "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+          },
+          {
+            "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Patient"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym",
+            "value": "urn:uuid:90936985-BABD-4013-B831-AF221B025770"
+          },
+          {
+            "system": "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym",
+            "value": "urn:uuid:D2E777F7-AE71-4237-BD2A-F36C57CBD85C"
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1980-06"
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Specimen/6F402429-9252-462D-BA38-534BAFD3F325",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "6F402429-9252-462D-BA38-534BAFD3F325",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Specimen"
+          ]
+        },
+        "accessionIdentifier": {
+          "system": "http://www.Labor-Ostholstein.de/identifiers/specimen/accessionIdentifier",
+          "value": "O24-001081"
+        },
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "257261003",
+              "display": "Swab (specimen)"
+            }
+          ],
+          "text": "Abstrich"
+        },
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "receivedTime": "2024-01-01",
+        "request": [
+          {
+            "reference": "ServiceRequest/28DD0C3C-3E52-40BA-E362-BDC426770C5E"
+          }
+        ],
+        "collection": {
+          "collector": {
+            "reference": "PractitionerRole/2F8A8E59-0178-42D1-B4C4-A804EB391821"
+          },
+          "collectedDateTime": "2024-01-01",
+          "bodySite": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "261665006",
+                "display": "Unknown (qualifier value)"
+              }
+            ],
+            "text": "nicht ermittelbar"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/bodySite",
+              "valueReference": {
+                "reference": "BodyStructure/B23DE4DC-78E2-56C7-3153-5BE36AFF5129"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/BodyStructure/B23DE4DC-78E2-56C7-3153-5BE36AFF5129",
+      "resource": {
+        "resourceType": "BodyStructure",
+        "id": "B23DE4DC-78E2-56C7-3153-5BE36AFF5129",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/BodyStructure"
+          ]
+        },
+        "morphology": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "261665006",
+              "display": "Unknown (qualifier value)"
+            }
+          ],
+          "text": "nicht ermittelbar"
+        },
+        "location": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "261665006",
+              "display": "Unknown (qualifier value)"
+            }
+          ],
+          "text": "nicht ermittelbar"
+        },
+        "patient": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+              "valueCode": "unsupported"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/PractitionerRole/2F8A8E59-0178-42D1-B4C4-A804EB391821",
+      "resource": {
+        "resourceType": "PractitionerRole",
+        "id": "2F8A8E59-0178-42D1-B4C4-A804EB391821",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/PractitionerRoleOutpatientOrganization"
+          ]
+        },
+        "specialty": [
+          {
+            "coding": [
+              {
+                "system": "https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_BAR2_ARZTNRFACHGRUPPE",
+                "version": "1.03",
+                "code": "99",
+                "display": "weitere Fachgruppen"
+              }
+            ]
+          }
+        ],
+        "organization": {
+          "reference": "Organization/24EB6180-9687-481A-856E-A97A1528BB04"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Organization/24EB6180-9687-481A-856E-A97A1528BB04",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "24EB6180-9687-481A-856E-A97A1528BB04",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/PhysicianOfficeOrOther"
+          ]
+        },
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "code": "XX",
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203"
+                }
+              ]
+            },
+            "system": "https://demis.rki.de/fhir/sid/InternalOrganizationId",
+            "value": "64335001203"
+          }
+        ],
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "https://demis.rki.de/fhir/CodeSystem/organizationType",
+                "version": "1.1.0",
+                "code": "othPrivatLab"
+              }
+            ]
+          }
+        ],
+        "address": [
+          {
+            "postalCode": "50593"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/DE1958BA-4A4F-406E-98DD-1BCA964788EE",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "DE1958BA-4A4F-406E-98DD-1BCA964788EE",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18989-4",
+              "display": "Teicoplanin [Susceptibility]"
+            }
+          ],
+          "text": "Teicoplanin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/1F983D32-8048-4266-9E40-1D19899E2B9A",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "1F983D32-8048-4266-9E40-1D19899E2B9A",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "41852-5",
+              "display": "Microorganism or agent identified in Specimen"
+            }
+          ]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "3092008",
+              "display": "Staphylokokkus aureus"
+            }
+          ],
+          "text": "Staphylococcus aureus"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "10828004",
+                "display": "Positive (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "83581000052107",
+              "display": "Matrix assisted laser desorption ionization time of flight mass spectrometry technique (qualifier value)"
+            }
+          ],
+          "text": "MALDI-TOF"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/5C6E6392-63DA-48D0-AB98-26595CE6888A",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "5C6E6392-63DA-48D0-AB98-26595CE6888A",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/5.0/StructureDefinition/extension-Observation.triggeredBy",
+            "extension": [
+              {
+                "url": "observation",
+                "valueReference": {
+                  "reference": "Observation/1F983D32-8048-4266-9E40-1D19899E2B9A"
+                }
+              },
+              {
+                "url": "type",
+                "valueCode": "reflex"
+              }
+            ]
+          }
+        ],
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "29576-6",
+              "display": "Bacterial susceptibility panel"
+            }
+          ]
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        },
+        "hasMember": [
+          {
+            "reference": "Observation/3FFD8553-AB90-4514-9BF0-747B6596A859"
+          },
+          {
+            "reference": "Observation/1D9E9DA1-6255-48CB-ABDD-76D12E45619A"
+          },
+          {
+            "reference": "Observation/0BAB0309-3600-4FBC-93B9-38E5A3AAAC27"
+          },
+          {
+            "reference": "Observation/5C399667-6313-4097-A6D8-E0E4BA85A3DA"
+          },
+          {
+            "reference": "Observation/DC1C7E0D-F0AF-46D2-BAB6-8AA72AB25D7D"
+          },
+          {
+            "reference": "Observation/5FA167AD-31FC-4CAF-9078-F67A2D8DEE98"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/590A3250-7385-4126-9353-290E6D457CF5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "590A3250-7385-4126-9353-290E6D457CF5",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18917-5",
+              "display": "Doxycycline [Susceptibility]"
+            }
+          ],
+          "text": "Doxycyclin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/0BAB0309-3600-4FBC-93B9-38E5A3AAAC27",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "0BAB0309-3600-4FBC-93B9-38E5A3AAAC27",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18908-4",
+              "display": "Clindamycin [Susceptibility]"
+            }
+          ],
+          "text": "Clindamycin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/2EFD9EA8-0531-4C7A-B4F2-39207C00A607",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "2EFD9EA8-0531-4C7A-B4F2-39207C00A607",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "20629-2",
+              "display": "levoFLOXacin [Susceptibility]"
+            }
+          ],
+          "text": "Levofloxacin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "264841006",
+              "display": "Intermediately susceptible (qualifier value)"
+            }
+          ],
+          "text": "i"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "264841006",
+                "display": "Intermediately susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/8F53807B-9AF5-428C-A0B1-4D31D877A809",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "8F53807B-9AF5-428C-A0B1-4D31D877A809",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18964-7",
+              "display": "Penicillin [Susceptibility]"
+            }
+          ],
+          "text": "Penicillin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "30714006",
+              "display": "Resistant (qualifier value)"
+            }
+          ],
+          "text": "r"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "30714006",
+                "display": "Resistant (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/69F73F6F-113C-492A-95C4-578711811AA4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "69F73F6F-113C-492A-95C4-578711811AA4",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18908-4",
+              "display": "Clindamycin [Susceptibility]"
+            }
+          ],
+          "text": "Clindamycin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/8C093C9D-772B-47FB-A171-59584F007B3B",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "8C093C9D-772B-47FB-A171-59584F007B3B",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18917-5",
+              "display": "Doxycycline [Susceptibility]"
+            }
+          ],
+          "text": "Doxycyclin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/6AB9F388-025D-4236-912E-68105613AC0B",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "6AB9F388-025D-4236-912E-68105613AC0B",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18998-5",
+              "display": "Trimethoprim+Sulfamethoxazole [Susceptibility]"
+            }
+          ],
+          "text": "Cotrimoxazol"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/0FDE729B-063D-46A0-82DC-6E9346B2674A",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "0FDE729B-063D-46A0-82DC-6E9346B2674A",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18896-1",
+              "display": "Cefuroxime Parenteral [Susceptibility]"
+            }
+          ],
+          "text": "Cefuroxim"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/E0297211-CE3E-45E4-B8B1-7271A21C42AF",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "E0297211-CE3E-45E4-B8B1-7271A21C42AF",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18970-4",
+              "display": "Piperacillin+Tazobactam [Susceptibility]"
+            }
+          ],
+          "text": "Piperacillin/Tazobactam"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/3FFD8553-AB90-4514-9BF0-747B6596A859",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "3FFD8553-AB90-4514-9BF0-747B6596A859",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18878-9",
+              "display": "ceFAZolin [Susceptibility]"
+            }
+          ],
+          "text": "Cefazolin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/1D9E9DA1-6255-48CB-ABDD-76D12E45619A",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "1D9E9DA1-6255-48CB-ABDD-76D12E45619A",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18886-2",
+              "display": "Cefotaxime [Susceptibility]"
+            }
+          ],
+          "text": "Cefotaxim"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "264841006",
+              "display": "Intermediately susceptible (qualifier value)"
+            }
+          ],
+          "text": "i"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "264841006",
+                "display": "Intermediately susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/DC1C7E0D-F0AF-46D2-BAB6-8AA72AB25D7D",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "DC1C7E0D-F0AF-46D2-BAB6-8AA72AB25D7D",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18998-5",
+              "display": "Trimethoprim+Sulfamethoxazole [Susceptibility]"
+            }
+          ],
+          "text": "Cotrimoxazol"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/B90586D7-CEFF-49D1-97B1-A9F8C79C684F",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "B90586D7-CEFF-49D1-97B1-A9F8C79C684F",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18927-4",
+              "display": "Fusidate [Susceptibility]"
+            }
+          ],
+          "text": "Fusidinsäure"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/E2463A20-4E7D-4792-A554-AB11A5C8A6C4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "E2463A20-4E7D-4792-A554-AB11A5C8A6C4",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18886-2",
+              "display": "Cefotaxime [Susceptibility]"
+            }
+          ],
+          "text": "Cefotaxim"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "264841006",
+              "display": "Intermediately susceptible (qualifier value)"
+            }
+          ],
+          "text": "i"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "264841006",
+                "display": "Intermediately susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/3EAF4552-CA24-42A2-AD3F-AE06541023E3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "3EAF4552-CA24-42A2-AD3F-AE06541023E3",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "41852-5",
+              "display": "Microorganism or agent identified in Specimen"
+            }
+          ]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "3092008",
+              "display": "Staphylokokkus aureus"
+            }
+          ],
+          "text": "Staphylococcus aureus"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "10828004",
+                "display": "Positive (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "83581000052107",
+              "display": "Matrix assisted laser desorption ionization time of flight mass spectrometry technique (qualifier value)"
+            }
+          ],
+          "text": "MALDI-TOF"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/29F14133-067A-4888-990B-B6D75847D864",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "29F14133-067A-4888-990B-B6D75847D864",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/5.0/StructureDefinition/extension-Observation.triggeredBy",
+            "extension": [
+              {
+                "url": "observation",
+                "valueReference": {
+                  "reference": "Observation/BA8D549C-0926-4B90-9085-FFE1E08F1EF3"
+                }
+              },
+              {
+                "url": "type",
+                "valueCode": "reflex"
+              }
+            ]
+          }
+        ],
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "29576-6",
+              "display": "Bacterial susceptibility panel"
+            }
+          ]
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        },
+        "hasMember": [
+          {
+            "reference": "Observation/E2463A20-4E7D-4792-A554-AB11A5C8A6C4"
+          },
+          {
+            "reference": "Observation/7C6BF1C2-4845-44A1-ACFB-CA3030BFCEE0"
+          },
+          {
+            "reference": "Observation/2EFD9EA8-0531-4C7A-B4F2-39207C00A607"
+          },
+          {
+            "reference": "Observation/6AB9F388-025D-4236-912E-68105613AC0B"
+          },
+          {
+            "reference": "Observation/8F53807B-9AF5-428C-A0B1-4D31D877A809"
+          },
+          {
+            "reference": "Observation/590A3250-7385-4126-9353-290E6D457CF5"
+          },
+          {
+            "reference": "Observation/B90586D7-CEFF-49D1-97B1-A9F8C79C684F"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/A54A33E9-FDEF-4B31-B0C1-BC00A3AEEC91",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "A54A33E9-FDEF-4B31-B0C1-BC00A3AEEC91",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/5.0/StructureDefinition/extension-Observation.triggeredBy",
+            "extension": [
+              {
+                "url": "observation",
+                "valueReference": {
+                  "reference": "Observation/3EAF4552-CA24-42A2-AD3F-AE06541023E3"
+                }
+              },
+              {
+                "url": "type",
+                "valueCode": "reflex"
+              }
+            ]
+          }
+        ],
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "29576-6",
+              "display": "Bacterial susceptibility panel"
+            }
+          ]
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        },
+        "hasMember": [
+          {
+            "reference": "Observation/52D2331C-C511-4D34-8D23-CE398022A218"
+          },
+          {
+            "reference": "Observation/69F73F6F-113C-492A-95C4-578711811AA4"
+          },
+          {
+            "reference": "Observation/8C093C9D-772B-47FB-A171-59584F007B3B"
+          },
+          {
+            "reference": "Observation/DE1958BA-4A4F-406E-98DD-1BCA964788EE"
+          },
+          {
+            "reference": "Observation/0FDE729B-063D-46A0-82DC-6E9346B2674A"
+          },
+          {
+            "reference": "Observation/E0297211-CE3E-45E4-B8B1-7271A21C42AF"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/7C6BF1C2-4845-44A1-ACFB-CA3030BFCEE0",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "7C6BF1C2-4845-44A1-ACFB-CA3030BFCEE0",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18928-2",
+              "display": "Gentamicin [Susceptibility]"
+            }
+          ],
+          "text": "Gentamicin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/52D2331C-C511-4D34-8D23-CE398022A218",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "52D2331C-C511-4D34-8D23-CE398022A218",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18998-5",
+              "display": "Trimethoprim+Sulfamethoxazole [Susceptibility]"
+            }
+          ],
+          "text": "Cotrimoxazol"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/5C399667-6313-4097-A6D8-E0E4BA85A3DA",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "5C399667-6313-4097-A6D8-E0E4BA85A3DA",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18917-5",
+              "display": "Doxycycline [Susceptibility]"
+            }
+          ],
+          "text": "Doxycyclin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/5FA167AD-31FC-4CAF-9078-F67A2D8DEE98",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "5FA167AD-31FC-4CAF-9078-F67A2D8DEE98",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "35789-7",
+              "display": "DAPTOmycin [Susceptibility]"
+            }
+          ],
+          "text": "Daptomycin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/BA8D549C-0926-4B90-9085-FFE1E08F1EF3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "BA8D549C-0926-4B90-9085-FFE1E08F1EF3",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "41852-5",
+              "display": "Microorganism or agent identified in Specimen"
+            }
+          ]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "3092008",
+              "display": "Staphylokokkus aureus"
+            }
+          ],
+          "text": "Staphylococcus aureus"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "10828004",
+                "display": "Positive (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "83581000052107",
+              "display": "Matrix assisted laser desorption ionization time of flight mass spectrometry technique (qualifier value)"
+            }
+          ],
+          "text": "MALDI-TOF"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/6F402429-9252-462D-BA38-534BAFD3F325"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "80C687FF-7B9E-401B-9680-FE952BA0C1DB",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Specimen"
+          ]
+        },
+        "accessionIdentifier": {
+          "system": "http://www.Labor-Ostholstein.de/identifiers/specimen/accessionIdentifier",
+          "value": "24-003257"
+        },
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "257261003",
+              "display": "Swab (specimen)"
+            }
+          ],
+          "text": "Abstrich"
+        },
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "receivedTime": "2024-01-01",
+        "request": [
+          {
+            "reference": "ServiceRequest/28DD0C3C-3E52-40BA-E362-BDC426770C5E"
+          }
+        ],
+        "collection": {
+          "collector": {
+            "reference": "PractitionerRole/2F8A8E59-0178-42D1-B4C4-A804EB391821"
+          },
+          "collectedDateTime": "2024-01-01",
+          "bodySite": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "261665006",
+                "display": "Unknown (qualifier value)"
+              }
+            ],
+            "text": "nicht ermittelbar"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/bodySite",
+              "valueReference": {
+                "reference": "BodyStructure/14C77DC0-D87F-2A0E-57A6-0634CCD47E45"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/BodyStructure/14C77DC0-D87F-2A0E-57A6-0634CCD47E45",
+      "resource": {
+        "resourceType": "BodyStructure",
+        "id": "14C77DC0-D87F-2A0E-57A6-0634CCD47E45",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/BodyStructure"
+          ]
+        },
+        "morphology": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "261665006",
+              "display": "Unknown (qualifier value)"
+            }
+          ],
+          "text": "nicht ermittelbar"
+        },
+        "location": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "261665006",
+              "display": "Unknown (qualifier value)"
+            }
+          ],
+          "text": "nicht ermittelbar"
+        },
+        "patient": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+              "valueCode": "unsupported"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/66F633D2-B9A2-4B0A-B0F5-3179315495B7",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "66F633D2-B9A2-4B0A-B0F5-3179315495B7",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18895-3",
+              "display": "cefTRIAXone [Susceptibility]"
+            }
+          ],
+          "text": "Ceftriaxon"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/7C51B44B-350C-4FC3-972E-32A44A02D4B2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "7C51B44B-350C-4FC3-972E-32A44A02D4B2",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18880-5",
+              "display": "Cefixime [Susceptibility]"
+            }
+          ],
+          "text": "Cefixim"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/DB228946-98F0-4C11-A702-3885E20F94A1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "DB228946-98F0-4C11-A702-3885E20F94A1",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "42357-4",
+              "display": "Tigecycline [Susceptibility]"
+            }
+          ],
+          "text": "Tigecyclin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/007856D8-B674-409B-90C2-3FC9FEF18BF1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "007856D8-B674-409B-90C2-3FC9FEF18BF1",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "20629-2",
+              "display": "levoFLOXacin [Susceptibility]"
+            }
+          ],
+          "text": "Levofloxacin"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/550F0E00-17DD-4247-B2DE-60691103319B",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "550F0E00-17DD-4247-B2DE-60691103319B",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18896-1",
+              "display": "Cefuroxime Parenteral [Susceptibility]"
+            }
+          ],
+          "text": "Cefuroxim"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "264841006",
+              "display": "Intermediately susceptible (qualifier value)"
+            }
+          ],
+          "text": "i"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "264841006",
+                "display": "Intermediately susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/EC3165D3-2E0A-4812-917B-63CEE139C834",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "EC3165D3-2E0A-4812-917B-63CEE139C834",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "41852-5",
+              "display": "Microorganism or agent identified in Specimen"
+            }
+          ]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "112283007",
+              "display": "Escherichia coli"
+            }
+          ],
+          "text": "Escherichia coli"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "10828004",
+                "display": "Positive (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "83581000052107",
+              "display": "Matrix assisted laser desorption ionization time of flight mass spectrometry technique (qualifier value)"
+            }
+          ],
+          "text": "MALDI-TOF"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/2B4134FE-B0B9-4005-9819-76343E41BFF9",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "2B4134FE-B0B9-4005-9819-76343E41BFF9",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "18886-2",
+              "display": "Cefotaxime [Susceptibility]"
+            }
+          ],
+          "text": "Cefotaxim"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/56E0FEDD-089F-4345-98DA-E77AAFC4E8DA",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "56E0FEDD-089F-4345-98DA-E77AAFC4E8DA",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/5.0/StructureDefinition/extension-Observation.triggeredBy",
+            "extension": [
+              {
+                "url": "observation",
+                "valueReference": {
+                  "reference": "Observation/EC3165D3-2E0A-4812-917B-63CEE139C834"
+                }
+              },
+              {
+                "url": "type",
+                "valueCode": "reflex"
+              }
+            ]
+          }
+        ],
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "29576-6",
+              "display": "Bacterial susceptibility panel"
+            }
+          ]
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        },
+        "hasMember": [
+          {
+            "reference": "Observation/DB228946-98F0-4C11-A702-3885E20F94A1"
+          },
+          {
+            "reference": "Observation/7C51B44B-350C-4FC3-972E-32A44A02D4B2"
+          },
+          {
+            "reference": "Observation/66F633D2-B9A2-4B0A-B0F5-3179315495B7"
+          },
+          {
+            "reference": "Observation/2B4134FE-B0B9-4005-9819-76343E41BFF9"
+          },
+          {
+            "reference": "Observation/4931D0BC-7944-46EA-B4E9-EBA31F75AF88"
+          },
+          {
+            "reference": "Observation/007856D8-B674-409B-90C2-3FC9FEF18BF1"
+          },
+          {
+            "reference": "Observation/550F0E00-17DD-4247-B2DE-60691103319B"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://demis.rki.de/fhir/ars/Observation/4931D0BC-7944-46EA-B4E9-EBA31F75AF88",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "4931D0BC-7944-46EA-B4E9-EBA31F75AF88",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/ars/StructureDefinition/Observation"
+          ]
+        },
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "version": "2.78",
+              "code": "35783-0",
+              "display": "Cefuroxime Oral [Susceptibility]"
+            }
+          ],
+          "text": "Cefuroxim-Axetil"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "131196009",
+              "display": "Susceptible (qualifier value)"
+            }
+          ],
+          "text": "s"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "version": "http://snomed.info/sct/11000274103/version/20241115",
+                "code": "131196009",
+                "display": "Susceptible (qualifier value)"
+              }
+            ]
+          }
+        ],
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "http://snomed.info/sct/11000274103/version/20241115",
+              "code": "263696007",
+              "display": "Broth dilution (qualifier value)"
+            }
+          ],
+          "text": "Mikrodilution"
+        },
+        "issued": "2024-01-01T00:00:00.000+01:00",
+        "subject": {
+          "reference": "Patient/C566A0C5-B79D-3B1B-69D8-3D9F2B440EC2"
+        },
+        "specimen": {
+          "reference": "Specimen/80C687FF-7B9E-401B-9680-FE952BA0C1DB"
+        }
+      }
+    }
+  ]
+}
+

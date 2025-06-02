@@ -1,0 +1,25 @@
+fullnameOverride: ars-service
+service:
+  type: ClusterIP
+  ports:
+    http: 8080
+istio:
+  enable: true
+  virtualService:
+    gateways:
+      - demis-gateway
+    http:
+      match:
+        - uri:
+            prefix: /surveillance/antibiotic-resistance/
+      rewrite:
+        uri: /
+    hosts: {}
+  subsets:
+    main:
+      version: 1.0.0
+      weight: "100"
+# activate Traffic mirroring, also called shadowing with the following lines
+#      mirror:
+#        version: 1.1.0
+#        mirrorPercentage: 0
