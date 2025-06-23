@@ -45,6 +45,9 @@ public class Constants {
       PROFILE_BASE_URL + "NamingSystem/NotificationBundleId";
   public static final String EXTENSION_URL_RECEPTION_TIME_STAMP_TYPE =
       PROFILE_BASE_URL + "StructureDefinition/ReceptionTimeStamp";
+  public static final String RESPONSIBLE_HEALTH_DEPARTMENT_CODING_SYSTEM =
+      PROFILE_BASE_URL + "CodeSystem/ResponsibleDepartment";
+  public static final String RKI_DEPARTMENT_IDENTIFIER = "1.";
 
   @Getter
   public static class Profile<T extends Resource> {

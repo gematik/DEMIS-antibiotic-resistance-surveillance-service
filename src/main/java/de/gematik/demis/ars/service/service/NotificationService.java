@@ -30,6 +30,7 @@ import static de.gematik.demis.ars.service.utils.Constants.NOTIFICATION_BUNDLE_I
 
 import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentService;
 import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
+import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.validation.NotificationValidationService;
 import java.util.List;
@@ -54,6 +55,7 @@ public class NotificationService {
   private final PseudonymisationService pseudonymisationService;
   private final FhirBundleOperator fhirBundleOperator;
   private final ContextEnrichmentService contextEnrichmentService;
+  private final FssService fssService;
 
   public Parameters process(String content, MediaType mediaType, String authorization) {
     OperationOutcome validationOutcome = validationService.validateFhir(content, mediaType);
@@ -63,6 +65,7 @@ public class NotificationService {
     contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
     fhirBundleOperator.enrichBundle(bundle, notificationId);
     List<Identifier> specimenIdentifier = fhirBundleOperator.getSpecimenAccessionIdentifier(bundle);
+    fssService.sendNotificationToFss(bundle);
     return buildResponse(validationOutcome, notificationId, specimenIdentifier);
   }
 

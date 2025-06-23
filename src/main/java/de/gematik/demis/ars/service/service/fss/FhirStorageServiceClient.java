@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service.exception;
+package de.gematik.demis.ars.service.service.fss;
 
 /*-
  * #%L
@@ -26,22 +26,22 @@ package de.gematik.demis.ars.service.exception;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import static de.gematik.demis.ars.service.exception.ServiceCallErrorCode.FSS;
 
-@RequiredArgsConstructor
-@Getter
-public enum ErrorCode {
-  FHIR_VALIDATION_FATAL(HttpStatus.BAD_REQUEST),
-  FHIR_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY),
-  INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
-  MISSING_RESOURCE(HttpStatus.BAD_REQUEST),
-  NOTIFICATION_ERROR(HttpStatus.BAD_REQUEST);
+import de.gematik.demis.service.base.feign.annotations.ErrorCode;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
-  private final HttpStatus httpStatus;
+@FeignClient(name = "fhir-storage-service", url = "${ars.fss.url}")
+public interface FhirStorageServiceClient {
 
-  public String getCode() {
-    return name();
-  }
+  @PostMapping(
+      value = "/notification-clearing-api/fhir/",
+      consumes = "application/fhir+json",
+      produces = "application/fhir+json")
+  @ErrorCode(FSS)
+  ResponseEntity<String> sendNotification(
+      @RequestHeader("Authorization") String bearerToken, String bundleAsJson);
 }

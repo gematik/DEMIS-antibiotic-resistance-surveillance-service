@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentService;
 import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
+import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.validation.NotificationValidationService;
 import de.gematik.demis.ars.service.utils.TestUtils;
@@ -66,6 +67,7 @@ class NotificationServiceTest {
   @Mock FhirBundleOperator fhirBundleOperator;
   @Mock ContextEnrichmentService contextEnrichmentService;
   @Mock PseudonymisationService pseudonymisationService;
+  @Mock FssService fssService;
   @Captor private ArgumentCaptor<String> uuidCaptor;
   @Captor private ArgumentCaptor<Bundle> bundleCaptor;
   @InjectMocks private NotificationService underTest;
@@ -78,6 +80,7 @@ class NotificationServiceTest {
         .thenReturn(testUtil.getDefaultBundle());
     doNothing().when(contextEnrichmentService).enrichBundleWithContextInformation(any(), any());
     doNothing().when(pseudonymisationService).replacePatientIdentifier(any());
+    doNothing().when(fssService).sendNotificationToFss(any());
     Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
     assertNotNull(output);
     OperationOutcome operationOutcome =
@@ -92,6 +95,7 @@ class NotificationServiceTest {
         operationOutcome.getIssue().getFirst().getSeverity());
     verify(contextEnrichmentService, times(1)).enrichBundleWithContextInformation(any(), any());
     verify(pseudonymisationService, times(1)).replacePatientIdentifier(any());
+    verify(fssService, times(1)).sendNotificationToFss(any());
   }
 
   @Test

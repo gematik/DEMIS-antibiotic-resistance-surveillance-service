@@ -12,6 +12,9 @@ ars:
     url: ${DEMIS_NETWORK_VALIDATION_SERVICE_ADDRESS:http://validation-service.demis.svc.cluster.local}
   ces:
     url: ${DEMIS_NETWORK_CONTENT_ENRICHMENT_SERVICE_ADDRESS:http://context-enrichment-service.demis.svc.cluster.local}
+  fss:
+    url: ${DEMIS_NETWORK_FHIR_STORAGE_SERVICE_ADDRESS:http://fhir-storage-writer.demis.svc.cluster.local}
+    apikey: ${NCAPI_TOKEN:d3bb856bf1206de0947026e4632c03523c54f57dc904da3aaffa3717acfeee1a}
 
 feature:
   flag:

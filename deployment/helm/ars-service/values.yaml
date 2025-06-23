@@ -17,6 +17,21 @@ required:
     # If not given, the Chart AppVersion will be used
     tag: null
 
+# Define custom configuration values
+# The Entries will be read from the given (external) Secrets and injected in the container with the same name.
+# IMPORTANT: these values must be defined in the Secret Objects
+config:
+  # The (external) Secret Objects containing the API Key entry
+  secrets:
+    api:
+      # The name of the (external) Secret for API and the entries to be used and mapped
+      name: ncapi-apikey
+      # Define the API Key Variable Name from the defined config.secret.name
+      # The API Keys will be read from the given (external) Secret and injected in the container with the same name.
+      # IMPORTANT: these values must be defined in the Secret
+      entries:
+        NCAPI_TOKEN: NCS_APIKEY
+
 # Extra Labels to be added
 # E.g.
 # customLabels:
@@ -103,7 +118,6 @@ service:
 # Default Resources
 resources: 
   limits:
-    cpu: "1000m"
     memory: "1Gi"
   requests:
     cpu: "200m"

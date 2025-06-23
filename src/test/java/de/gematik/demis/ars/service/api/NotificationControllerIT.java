@@ -39,6 +39,7 @@ import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.INFORMATION;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.WARNING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,11 +52,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import de.gematik.demis.ars.service.service.fss.FhirStorageServiceClient;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.validation.ValidationServiceClient;
 import de.gematik.demis.ars.service.utils.TestUtils;
+import de.gematik.demis.service.base.error.ServiceCallException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import lombok.SneakyThrows;
 import org.hl7.fhir.r4.model.Bundle;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -66,6 +70,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -82,6 +87,7 @@ class NotificationControllerIT {
 
   @Autowired private MockMvc mockMvc;
   @MockitoBean private ValidationServiceClient validationClient;
+  @MockitoBean private FhirStorageServiceClient fssClient;
   @SpyBean private PseudonymisationService pseudonymisationService;
 
   private static Stream<Arguments> shouldAcceptXmlAndJsonContentType() {
@@ -127,6 +133,8 @@ class NotificationControllerIT {
   void shouldReturnTwoSpecimenIdentifier() throws Exception {
     when(validationClient.validateJsonBundle(anyString()))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+    when(fssClient.sendNotification(startsWith("Bearer "), anyString()))
+        .thenReturn(ResponseEntity.ok().build());
     mockMvc
         .perform(
             post(NOTIFICATION_URL)
@@ -150,6 +158,8 @@ class NotificationControllerIT {
   void shouldReturn200IfSeverityOnlyWarning() throws Exception {
     when(validationClient.validateJsonBundle(anyString()))
         .thenReturn(testUtil.createOutcomeResponse(WARNING));
+    when(fssClient.sendNotification(startsWith("Bearer "), anyString()))
+        .thenReturn(ResponseEntity.ok().build());
     mockMvc
         .perform(
             post(NOTIFICATION_URL)
@@ -163,6 +173,8 @@ class NotificationControllerIT {
   void shouldReturnContentTypeXmlWhenAcceptHeaderSet() throws Exception {
     when(validationClient.validateJsonBundle(anyString()))
         .thenReturn(testUtil.createOutcomeResponse(WARNING));
+    when(fssClient.sendNotification(startsWith("Bearer "), anyString()))
+        .thenReturn(ResponseEntity.ok().build());
     mockMvc
         .perform(
             post(NOTIFICATION_URL)
@@ -228,6 +240,8 @@ class NotificationControllerIT {
   void shouldCallPseudonymisationServiceMethodIfPostSuccesfully() throws Exception {
     when(validationClient.validateJsonBundle(anyString()))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+    when(fssClient.sendNotification(startsWith("Bearer "), anyString()))
+        .thenReturn(ResponseEntity.ok().build());
     mockMvc
         .perform(
             post(NOTIFICATION_URL)
@@ -237,5 +251,20 @@ class NotificationControllerIT {
                 .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
         .andExpect(status().is2xxSuccessful());
     verify(pseudonymisationService, times(1)).replacePatientIdentifier(any(Bundle.class));
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldReturn500IfFssThrowsException() {
+    when(fssClient.sendNotification(startsWith("Bearer "), anyString()))
+        .thenThrow(ServiceCallException.class);
+    mockMvc
+        .perform(
+            post(NOTIFICATION_URL)
+                .header("Authorization", TEST_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+                .accept(APPLICATION_JSON_VALUE)
+                .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
+        .andExpect(status().isInternalServerError());
   }
 }
