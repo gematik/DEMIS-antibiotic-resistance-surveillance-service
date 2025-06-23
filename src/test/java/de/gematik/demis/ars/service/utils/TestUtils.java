@@ -118,6 +118,10 @@ public class TestUtils {
     return parser.parseResource(Bundle.class, readFileToString(relativePath));
   }
 
+  public Bundle getBundleFromJsonString(String value) {
+    return fhirContext.newJsonParser().parseResource(Bundle.class, value);
+  }
+
   public Response createOutcomeResponse(IssueSeverity lvl) {
     String body =
         switch (lvl) {

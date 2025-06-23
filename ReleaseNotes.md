@@ -2,6 +2,11 @@
  
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.1.0
+- remove cpu limits from helm chart
+- setting new timeouts and retries in helm chart
+- update spring-parent to 2.11.2
+
 ## Release 1.0.0
 - Initial Project setup
 - Add OSPO-Guidelines 
