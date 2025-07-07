@@ -33,12 +33,10 @@ import static de.gematik.demis.ars.service.utils.Constants.RKI_DEPARTMENT_IDENTI
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Resource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
@@ -49,22 +47,18 @@ import org.springframework.stereotype.Service;
 public class FssService {
   private final FhirStorageServiceClient fssClient;
 
-  @Value("${ars.fss.apikey}")
-  @Setter
-  private String apiKey;
-
   /**
    * Takes the <Bundle> and wraps it into a transactionBundle. Therefor encryption for RKI will be
    * done
    *
-   * @param bundle the information in <Bundle> representation to send to <NCAPI>
+   * @param bundle the information in <Bundle> representation to send to <FSS>
    */
   public void sendNotificationToFss(Bundle bundle) {
     setRkiDepartmentIdentifierTag(bundle);
     Bundle transactionBundle = createTransactionBundle(bundle);
     String jsonBundle = serializeResource(transactionBundle, MediaType.APPLICATION_JSON);
     try {
-      fssClient.sendNotification("Bearer " + apiKey, jsonBundle);
+      fssClient.sendNotification(jsonBundle);
     } catch (Exception ex) {
       throw new ArsServiceException(
           ErrorCode.INTERNAL_SERVER_ERROR, "Save notification failed", ex);

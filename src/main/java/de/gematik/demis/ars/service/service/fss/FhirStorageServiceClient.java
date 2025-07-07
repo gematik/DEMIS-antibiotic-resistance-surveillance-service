@@ -32,7 +32,6 @@ import de.gematik.demis.service.base.feign.annotations.ErrorCode;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "fhir-storage-service", url = "${ars.fss.url}")
 public interface FhirStorageServiceClient {
@@ -42,6 +41,5 @@ public interface FhirStorageServiceClient {
       consumes = "application/fhir+json",
       produces = "application/fhir+json")
   @ErrorCode(FSS)
-  ResponseEntity<String> sendNotification(
-      @RequestHeader("Authorization") String bearerToken, String bundleAsJson);
+  ResponseEntity<String> sendNotification(String bundleAsJson);
 }

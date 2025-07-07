@@ -3,8 +3,6 @@
 {{- $dockerImage := .Values.required.image.name | required ".Values.required.image.name is required." -}}
 {{- $dockerTag := .Values.required.image.tag | default .Chart.AppVersion -}}
 {{- $customEnvVars := .Values.customEnvVars -}}
-{{- $secretApiKeysName := .Values.config.secrets.api.name | required ".Values.config.secrets.api.name is required." -}}
-{{- $secretApiKeysEntries := .Values.config.secrets.api.entries -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -81,14 +79,6 @@ spec:
             - name: {{ $key | quote }}
               value: {{ get $customEnvVars $key | quote }}
             {{- end }}
-            {{- end }}
-            {{- range $key, $val := $secretApiKeysEntries }}
-                # Custom Environment Variables for API Key Secrets
-            - name: {{ $key | quote }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $secretApiKeysName | quote }}
-                  key: {{ $val | quote }}
             {{- end }}
           # Mount Volumes in container
           volumeMounts:

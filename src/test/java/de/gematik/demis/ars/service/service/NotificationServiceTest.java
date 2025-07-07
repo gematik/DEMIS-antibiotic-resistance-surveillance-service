@@ -28,6 +28,7 @@ package de.gematik.demis.ars.service.service;
 
 import static de.gematik.demis.ars.service.service.NotificationService.BUNDLE_IDENTIFIER_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.service.NotificationService.OPERATION_OUTCOME_PARAMETER_NAME;
+import static de.gematik.demis.ars.service.service.NotificationService.OPERATION_OUTCOME_PARAMETER_PROFILE;
 import static de.gematik.demis.ars.service.service.NotificationService.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -156,5 +157,22 @@ class NotificationServiceTest {
     assertThat(specimenParams).hasSize(2);
     assertThat(specimenParams.stream().map(p -> ((Identifier) p.getValue()).getValue()))
         .containsExactly("specimenId", "specimenId2");
+  }
+
+  @Test
+  void shouldAddMetaProfileCorrectly() {
+    when(validationService.validateFhir(any(), any()))
+        .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
+    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
+        .thenReturn(testUtil.getDefaultBundle());
+    when(fhirBundleOperator.getSpecimenAccessionIdentifier(any()))
+        .thenReturn(List.of(new Identifier().setValue("specimenId")));
+
+    Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
+
+    assertNotNull(output.getMeta());
+    assertNotNull(output.getMeta().getProfile());
+    assertEquals(
+        OPERATION_OUTCOME_PARAMETER_PROFILE, output.getMeta().getProfile().get(0).getValue());
   }
 }
