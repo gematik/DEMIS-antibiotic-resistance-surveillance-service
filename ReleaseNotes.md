@@ -2,6 +2,10 @@
  
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.2.0
+- Updated Readme license disclaimer
+- removed ncapi apikey
+
 ## Release 1.1.0
 - remove cpu limits from helm chart
 - setting new timeouts and retries in helm chart

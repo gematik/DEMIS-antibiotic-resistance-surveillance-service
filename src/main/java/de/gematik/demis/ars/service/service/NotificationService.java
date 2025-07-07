@@ -51,6 +51,8 @@ public class NotificationService {
   public static final String BUNDLE_IDENTIFIER_PARAMETER_NAME = "bundleIdentifier";
   public static final String SPECIMEN_IDENTIFIER_PARAMETER_NAME = "specimenIdentifier";
   public static final String OPERATION_OUTCOME_PARAMETER_NAME = "operationOutcome";
+  public static final String OPERATION_OUTCOME_PARAMETER_PROFILE =
+      "https://demis.rki.de/fhir/ars/StructureDefinition/ParametersOutput";
   private final NotificationValidationService validationService;
   private final PseudonymisationService pseudonymisationService;
   private final FhirBundleOperator fhirBundleOperator;
@@ -74,6 +76,7 @@ public class NotificationService {
       String notificationId,
       List<Identifier> specimenIdentifier) {
     Parameters response = new Parameters();
+    response.getMeta().addProfile(OPERATION_OUTCOME_PARAMETER_PROFILE);
     response.addParameter(
         BUNDLE_IDENTIFIER_PARAMETER_NAME,
         new Identifier().setValue(notificationId).setSystem(NOTIFICATION_BUNDLE_IDENTIFIER_SYSTEM));

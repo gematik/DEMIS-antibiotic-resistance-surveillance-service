@@ -46,9 +46,7 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 class FssServiceTest {
 
-  public static final String TEST_TOKEN = "ABC";
   @Captor private ArgumentCaptor<String> jsonStringCaptor;
-  @Captor private ArgumentCaptor<String> tokenCaptor;
   private TestUtils testUtils = new TestUtils();
 
   @Mock FhirStorageServiceClient client;
@@ -58,11 +56,9 @@ class FssServiceTest {
   @Test
   void shouldSendBundleInBundle() {
     Bundle bundle = testUtils.getDefaultBundle();
-    service.setApiKey(TEST_TOKEN);
-    when(client.sendNotification(tokenCaptor.capture(), jsonStringCaptor.capture()))
+    when(client.sendNotification(jsonStringCaptor.capture()))
         .thenReturn(ResponseEntity.ok("Call successful"));
     service.sendNotificationToFss(bundle);
-    assertThat(tokenCaptor.getValue()).isEqualTo("Bearer " + TEST_TOKEN);
     Bundle transactionBundle = testUtils.getBundleFromJsonString(jsonStringCaptor.getValue());
     assertThat(transactionBundle.getEntry()).hasSize(1);
   }
@@ -70,8 +66,7 @@ class FssServiceTest {
   @Test
   void shouldThrowArsFssExceptionIfRequestIsNotOk() {
     Bundle bundle = testUtils.getDefaultBundle();
-    when(client.sendNotification(tokenCaptor.capture(), jsonStringCaptor.capture()))
-        .thenThrow(ServiceCallException.class);
+    when(client.sendNotification(jsonStringCaptor.capture())).thenThrow(ServiceCallException.class);
     assertThrows(ArsServiceException.class, () -> service.sendNotificationToFss(bundle));
   }
 

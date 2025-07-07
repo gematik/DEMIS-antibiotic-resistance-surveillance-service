@@ -49,7 +49,10 @@ public class NotificationController implements NotificationsApi {
       String authorization, String contentType, String content, String accept) {
     MediaType fhirMediaType = mapStringToMediaType(contentType);
     Parameters savedNotification = service.process(content, fhirMediaType, authorization);
-    MediaType responseMediaType = isNull(accept) ? fhirMediaType : mapStringToMediaType(accept);
+    MediaType responseMediaType =
+        isNull(accept) || accept.equals(MediaType.ALL_VALUE)
+            ? fhirMediaType
+            : mapStringToMediaType(accept);
     return ResponseEntity.ok()
         .contentType(responseMediaType)
         .body(serializeResource(savedNotification, responseMediaType));
