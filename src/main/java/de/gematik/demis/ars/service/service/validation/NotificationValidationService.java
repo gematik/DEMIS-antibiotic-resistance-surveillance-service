@@ -30,6 +30,10 @@ import static de.gematik.demis.ars.service.exception.ErrorCode.FHIR_VALIDATION_E
 import static de.gematik.demis.ars.service.exception.ErrorCode.FHIR_VALIDATION_FATAL;
 import static de.gematik.demis.ars.service.exception.ServiceCallErrorCode.VS;
 import static de.gematik.demis.ars.service.parser.FhirParser.deserializeResource;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE_OLD;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -40,13 +44,17 @@ import de.gematik.demis.service.base.error.ServiceCallException;
 import feign.Response;
 import feign.codec.Decoder;
 import feign.codec.StringDecoder;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -60,10 +68,15 @@ public class NotificationValidationService {
   private final ValidationServiceClient validationServiceClient;
   private final FhirOperationOutcomeOperationService outcomeService;
   private final Decoder decoder = new StringDecoder();
+  private final HttpServletRequest httpServletRequest;
 
   @Value("${feature.flag.ars_validation_enabled}")
   @Setter
   boolean validationEnabled;
+
+  @Value("${feature.flag.new_api_endpoints}")
+  @Setter
+  private boolean isVersionHeaderForwardEnabled;
 
   public OperationOutcome validateFhir(String content, MediaType mediaType) {
     if (!validationEnabled) {
@@ -105,10 +118,24 @@ public class NotificationValidationService {
     throw new ArsValidationException(errorCode, operationOutcome);
   }
 
+  private List<String> headersFromRequestByName(@Nonnull String headerName) {
+    return ofNullable(httpServletRequest.getHeader(headerName)).map(List::of).orElse(null);
+  }
+
   private Response getValidationResponse(String content, MediaType mediaType) {
+
+    final HttpHeaders headers = new HttpHeaders();
+
+    if (isVersionHeaderForwardEnabled) {
+      headers.computeIfAbsent(HEADER_FHIR_API_VERSION, this::headersFromRequestByName);
+      headers.computeIfAbsent(HEADER_FHIR_PROFILE, this::headersFromRequestByName);
+    }
+
+    headers.computeIfAbsent(HEADER_FHIR_PROFILE_OLD, ignored -> List.of("ars-profile-snapshots"));
+
     return mediaType.equals(APPLICATION_JSON)
-        ? validationServiceClient.validateJsonBundle(content)
-        : validationServiceClient.validateXmlBundle(content);
+        ? validationServiceClient.validateJsonBundle(headers, content)
+        : validationServiceClient.validateXmlBundle(headers, content);
   }
 
   private String readResponse(final Response response) {

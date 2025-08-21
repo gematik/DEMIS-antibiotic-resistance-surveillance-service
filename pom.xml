@@ -6,12 +6,12 @@
     <parent>
         <groupId>de.gematik.demis</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>2.12.0</version>
+        <version>2.12.12</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <artifactId>antibiotic-resistance-surveillance-service</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
     <name>Antibiotic-Resistance-Surveillance-Service</name>
     <packaging>jar</packaging>
     <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
@@ -65,6 +65,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-contract-wiremock</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
             <version>${openapitools-jackson-databind-nullable-version}</version>
@@ -75,42 +80,5 @@
             <artifactId>commons-fileupload</artifactId>
             <version>1.6.0</version>
         </dependency>
-
     </dependencies>
-
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.openapitools</groupId>
-                <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>${openapi-generator-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>
-                                ${project.basedir}/spec/api-spec.yaml
-                            </inputSpec>
-                            <skipIfSpecIsUnchanged>true</skipIfSpecIsUnchanged>
-                            <generatorName>spring</generatorName>
-                            <modelNameSuffix>DTO</modelNameSuffix>
-                            <apiPackage>de.gematik.demis.ars.api</apiPackage>
-                            <modelPackage>de.gematik.demis.ars.api.model</modelPackage>
-                            <configOptions>
-                                <sourceFolder>src/generated/java/main</sourceFolder>
-                                <interfaceOnly>true</interfaceOnly>
-                                <useJakartaEe>true</useJakartaEe>
-                                <useTags>true</useTags>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-        </plugins>
-    </build>
-
 </project>

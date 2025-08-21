@@ -36,7 +36,9 @@ import de.gematik.demis.ars.service.service.validation.NotificationValidationSer
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Device;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
@@ -45,6 +47,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class NotificationService {
 
@@ -60,15 +63,25 @@ public class NotificationService {
   private final FssService fssService;
 
   public Parameters process(String content, MediaType mediaType, String authorization) {
-    OperationOutcome validationOutcome = validationService.validateFhir(content, mediaType);
-    Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, mediaType);
-    pseudonymisationService.replacePatientIdentifier(bundle);
-    String notificationId = UUID.randomUUID().toString();
-    contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
-    fhirBundleOperator.enrichBundle(bundle, notificationId);
-    List<Identifier> specimenIdentifier = fhirBundleOperator.getSpecimenAccessionIdentifier(bundle);
-    fssService.sendNotificationToFss(bundle);
-    return buildResponse(validationOutcome, notificationId, specimenIdentifier);
+    try {
+      OperationOutcome validationOutcome = validationService.validateFhir(content, mediaType);
+      Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, mediaType);
+      pseudonymisationService.replacePatientIdentifier(bundle);
+      String notificationId = UUID.randomUUID().toString();
+      contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
+      fhirBundleOperator.enrichBundle(bundle, notificationId);
+      List<Identifier> specimenIdentifier =
+          fhirBundleOperator.getSpecimenAccessionIdentifier(bundle);
+      fssService.sendNotificationToFss(bundle);
+
+      logInfos(notificationId, bundle);
+
+      return buildResponse(validationOutcome, notificationId, specimenIdentifier);
+    } catch (Exception e) {
+      log.info(
+          "Notification: bundleId=not available, sender=<placeholder>, primarySystem=not available, type=ARS");
+      throw e;
+    }
   }
 
   private Parameters buildResponse(
@@ -91,5 +104,27 @@ public class NotificationService {
     operationOutcome.setName(OPERATION_OUTCOME_PARAMETER_NAME);
     operationOutcome.setResource(validationOutcome);
     return operationOutcome;
+  }
+
+  private void logInfos(final String notificationId, final Bundle bundle) {
+    String primarySystem = getPrimarySystemFromBundle(bundle);
+    String type = "ARS";
+
+    log.info(
+        "Notification: bundleId={}, sender=<placeholder>, primarySystem={}, type={}",
+        notificationId,
+        primarySystem,
+        type);
+  }
+
+  private String getPrimarySystemFromBundle(Bundle bundle) {
+    for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+      if (entry.getResource() instanceof Device device) {
+        if (!device.getDeviceName().isEmpty()) {
+          return device.getDeviceNameFirstRep().getName();
+        }
+      }
+    }
+    return "unknown";
   }
 }

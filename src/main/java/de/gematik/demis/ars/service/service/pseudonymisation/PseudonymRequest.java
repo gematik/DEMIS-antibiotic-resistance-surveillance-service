@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service.exception;
+package de.gematik.demis.ars.service.service.pseudonymisation;
 
 /*-
  * #%L
@@ -26,10 +26,8 @@ package de.gematik.demis.ars.service.exception;
  * #L%
  */
 
-@SuppressWarnings("java:S1214")
-public interface ServiceCallErrorCode {
-  String VS = "VS";
-  String CES = "CES";
-  String FSS = "FSS";
-  String PSEUDO = "PSEUDO";
-}
+import java.time.LocalDate;
+import lombok.Builder;
+
+@Builder
+record PseudonymRequest(String pseudonym1, String pseudonym2, LocalDate date) {}

@@ -191,11 +191,11 @@
                <profile value="https://demis.rki.de/fhir/ars/StructureDefinition/Patient"></profile>
             </meta>
             <identifier>
-               <system value="https://demis.rki.de/fhir/NamingSystem/CommonPatientPseudonym"></system>
+               <system value="https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym"></system>
                <value value="urn:uuid:E2539906-3C28-4969-B150-724D6BAAC0D1"></value>
             </identifier>
             <identifier>
-               <system value="https://demis.rki.de/fhir/NamingSystem/CommonPatientPseudonym"></system>
+               <system value="https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym"></system>
                <value value="urn:uuid:1836C39D-F0F5-420E-AACE-E476F3D3D440"></value>
             </identifier>
             <gender value="female"></gender>

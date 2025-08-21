@@ -7,6 +7,7 @@ info:
     version: '@project.version@'
 
 ars:
+  context-path: "${API_ENTRYPOINT:/fhir/}"# The API_ENTRYPOINT for the FHIR API is set to / if FEATURE_FLAG_NEW_API_ENDPOINTS=true or removed
   outcome-issue-threshold: warning
   validation:
     url: ${DEMIS_NETWORK_VALIDATION_SERVICE_ADDRESS:http://validation-service.demis.svc.cluster.local}
@@ -14,9 +15,12 @@ ars:
     url: ${DEMIS_NETWORK_CONTENT_ENRICHMENT_SERVICE_ADDRESS:http://context-enrichment-service.demis.svc.cluster.local}
   fss:
     url: ${DEMIS_NETWORK_FHIR_STORAGE_SERVICE_ADDRESS:http://fhir-storage-writer.demis.svc.cluster.local}
+    context-path: ${DEMIS_NETWORK_FHIR_STORAGE_WRITER_CONTEXT_PATH:/notification-clearing-api/fhir/}
   pseudo:
-    url: ${DEMIS_NETWORK_ARS_PSEUDO_SERVICE_ADDRESS:http://ars-pseudonymization-service.demis.svc.cluster.local}
+    url: ${DEMIS_NETWORK_ARS_PSEUDO_SERVICE_ADDRESS:http://surveillance-pseudonym-service-ars.demis.svc.cluster.local}
 
 feature:
   flag:
     ars_validation_enabled: false
+    new_api_endpoints: false
+    surveillance_pseudonym_service_enabled: false

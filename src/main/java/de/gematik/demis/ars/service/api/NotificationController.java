@@ -30,7 +30,6 @@ import static de.gematik.demis.ars.service.api.FhirContentTypeMapper.mapStringTo
 import static de.gematik.demis.ars.service.parser.FhirParser.serializeResource;
 import static java.util.Objects.isNull;
 
-import de.gematik.demis.ars.api.NotificationsApi;
 import de.gematik.demis.ars.service.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.hl7.fhir.r4.model.Parameters;

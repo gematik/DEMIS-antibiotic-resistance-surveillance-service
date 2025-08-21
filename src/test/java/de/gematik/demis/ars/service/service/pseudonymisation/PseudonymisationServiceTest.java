@@ -47,11 +47,11 @@ class PseudonymisationServiceTest {
 
   TestUtils testUtils = new TestUtils();
 
-  private final PseudonymisationService pseudonymisationService = new PseudonymisationService();
+  private final PseudonymisationService pseudonymisationService = new PseudonymisationService(null);
   private static final String FIXED_UUID_PREFIX = "urn:uuid:";
   private static final String FIXED_UUID = "10101010-1010-1010-1010-101010101010";
   private static final String FIXED_SYSTEM =
-      "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonymPeriod";
+      "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym";
 
   @ParameterizedTest
   @ValueSource(

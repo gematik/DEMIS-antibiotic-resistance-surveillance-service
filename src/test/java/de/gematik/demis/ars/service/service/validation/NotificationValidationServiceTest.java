@@ -29,6 +29,9 @@ package de.gematik.demis.ars.service.service.validation;
 import static de.gematik.demis.ars.service.exception.ErrorCode.FHIR_VALIDATION_ERROR;
 import static de.gematik.demis.ars.service.exception.ErrorCode.FHIR_VALIDATION_FATAL;
 import static de.gematik.demis.ars.service.exception.ServiceCallErrorCode.VS;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE_OLD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.FATAL;
@@ -37,6 +40,7 @@ import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.NULL;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.WARNING;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,14 +52,20 @@ import de.gematik.demis.ars.service.exception.ArsValidationException;
 import de.gematik.demis.ars.service.service.fhir.FhirOperationOutcomeOperationService;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.service.base.error.ServiceCallException;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.http.HttpHeaders;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationValidationServiceTest {
@@ -63,6 +73,9 @@ class NotificationValidationServiceTest {
   private final TestUtils testUtil = new TestUtils();
   @Mock ValidationServiceClient client;
   @Mock FhirOperationOutcomeOperationService outcomeService;
+  @Mock HttpServletRequest httpServletRequest;
+  @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
+
   @InjectMocks private NotificationValidationService underTest;
 
   @BeforeEach
@@ -80,7 +93,7 @@ class NotificationValidationServiceTest {
   @Test
   void shouldValidateSuccessfully() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(bundleString))
+    when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
     OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_JSON);
     assertThat(
@@ -93,7 +106,7 @@ class NotificationValidationServiceTest {
   @Test
   void shouldValidateSuccessfullyIfValidationWarning() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(bundleString))
+    when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(WARNING));
     OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_JSON);
     assertThat(
@@ -106,7 +119,7 @@ class NotificationValidationServiceTest {
   @Test
   void shouldCallJsonClientIfMediaTypeJson() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(bundleString))
+    when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
     OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_JSON);
     assertThat(
@@ -119,7 +132,7 @@ class NotificationValidationServiceTest {
   @Test
   void shouldCallXmlClientIfMediaTypeXml() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_XML);
-    when(client.validateXmlBundle(bundleString))
+    when(client.validateXmlBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
     OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_XML);
     assertThat(
@@ -132,7 +145,8 @@ class NotificationValidationServiceTest {
   @Test
   void shouldThrowExceptionIfValidationError() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(bundleString)).thenReturn(testUtil.createOutcomeResponse(ERROR));
+    when(client.validateJsonBundle(any(), eq(bundleString)))
+        .thenReturn(testUtil.createOutcomeResponse(ERROR));
     ArsValidationException exception =
         assertThrows(
             ArsValidationException.class,
@@ -143,7 +157,8 @@ class NotificationValidationServiceTest {
   @Test
   void shouldThrowExceptionIfValidationFatal() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(bundleString)).thenReturn(testUtil.createOutcomeResponse(FATAL));
+    when(client.validateJsonBundle(any(), eq(bundleString)))
+        .thenReturn(testUtil.createOutcomeResponse(FATAL));
     ArsValidationException exception =
         assertThrows(
             ArsValidationException.class,
@@ -154,7 +169,8 @@ class NotificationValidationServiceTest {
   @Test
   void shouldThrowExceptionIfValidationCallFails() {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(bundleString)).thenReturn(testUtil.createOutcomeResponse(NULL));
+    when(client.validateJsonBundle(any(), eq(bundleString)))
+        .thenReturn(testUtil.createOutcomeResponse(NULL));
     ServiceCallException exception =
         assertThrows(
             ServiceCallException.class,
@@ -168,7 +184,69 @@ class NotificationValidationServiceTest {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
     underTest.validateFhir(bundleString, APPLICATION_JSON);
     verify(outcomeService).generatePositiveOutcome();
-    verify(client, times(0)).validateJsonBundle(any());
-    verify(client, times(0)).validateXmlBundle(any());
+    verify(client, times(0)).validateJsonBundle(any(), any());
+    verify(client, times(0)).validateXmlBundle(any(), any());
+  }
+
+  @Test
+  void shouldSetHeader() {
+    String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
+    when(client.validateJsonBundle(any(), eq(bundleString)))
+        .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+    underTest.validateFhir(bundleString, APPLICATION_JSON);
+
+    verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
+    assertThat(headerCaptor.getValue())
+        .isNotNull()
+        .hasSize(1)
+        .containsKey(HEADER_FHIR_PROFILE_OLD)
+        .extractingByKey(HEADER_FHIR_PROFILE_OLD)
+        .isEqualTo(List.of("ars-profile-snapshots"));
+  }
+
+  @Nested
+  class FeatureFlag_FEATURE_FLAG_NEW_API_ENDPOINTS {
+
+    @Test
+    void shouldForwardHeaderCorrectly() {
+      underTest.setVersionHeaderForwardEnabled(true);
+      String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
+      String version = "v1";
+      String profile = "igs-profile-snapshots";
+      when(httpServletRequest.getHeader(HEADER_FHIR_API_VERSION)).thenReturn(version);
+      when(httpServletRequest.getHeader(HEADER_FHIR_PROFILE)).thenReturn(profile);
+      when(client.validateJsonBundle(any(), eq(bundleString)))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+
+      underTest.validateFhir(bundleString, APPLICATION_JSON);
+
+      verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
+      assertThat(headerCaptor.getValue())
+          .isNotNull()
+          .hasSize(3)
+          .containsKey(HEADER_FHIR_PROFILE)
+          .extractingByKey(HEADER_FHIR_PROFILE)
+          .isEqualTo(List.of(profile));
+      assertThat(headerCaptor.getValue())
+          .extractingByKey(HEADER_FHIR_API_VERSION)
+          .isEqualTo(List.of(version));
+    }
+
+    @Test
+    void shouldSetOldHeaderOnFeatureFlag() {
+      underTest.setVersionHeaderForwardEnabled(true);
+      String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
+      when(client.validateJsonBundle(any(), eq(bundleString)))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      underTest.validateFhir(bundleString, APPLICATION_JSON);
+
+      verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
+      assertThat(headerCaptor.getValue())
+          .isNotNull()
+          .hasSize(1)
+          .containsKey(HEADER_FHIR_PROFILE_OLD)
+          .extractingByKey(HEADER_FHIR_PROFILE_OLD)
+          .isEqualTo(List.of("ars-profile-snapshots"));
+    }
   }
 }
