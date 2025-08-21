@@ -29,9 +29,12 @@ package de.gematik.demis.ars.service.api;
 import static de.gematik.demis.ars.service.service.NotificationService.BUNDLE_IDENTIFIER_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.service.NotificationService.OPERATION_OUTCOME_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.service.NotificationService.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
+import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
 import static de.gematik.demis.ars.service.utils.TestUtils.TEST_TOKEN;
 import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATION_JSON;
 import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesRegex;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR;
@@ -39,6 +42,7 @@ import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.INFORMATION;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.WARNING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,229 +61,293 @@ import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationSer
 import de.gematik.demis.ars.service.service.validation.ValidationServiceClient;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.service.base.error.ServiceCallException;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hl7.fhir.r4.model.Bundle;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(properties = "feature.flag.ars_validation_enabled=true")
 class NotificationControllerIT {
 
-  public static final String NOTIFICATION_URL = "/fhir/$process-notification";
-  public static final String UUID_REGEX =
+  private static final String NOTIFICATION_URL = "$process-notification";
+  private static final String UUID_REGEX =
       "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
   private static final TestUtils testUtil = new TestUtils();
-  @Autowired private MockMvc mockMvc;
-  @MockitoBean private ValidationServiceClient validationClient;
-  @MockitoBean private FhirStorageServiceClient fssClient;
-  @MockitoSpyBean private PseudonymisationService pseudonymisationService;
 
-  private static Stream<Arguments> shouldAcceptXmlAndJsonContentType() {
-    return Stream.of(
-        Arguments.of(
-            APPLICATION_JSON_VALUE,
-            (Consumer<ValidationServiceClient>)
-                client ->
-                    when(client.validateJsonBundle(anyString()))
-                        .thenReturn(testUtil.createOutcomeResponse(INFORMATION))),
-        Arguments.of(
-            APPLICATION_XML_VALUE,
-            (Consumer<ValidationServiceClient>)
-                client ->
-                    when(client.validateXmlBundle(anyString()))
-                        .thenReturn(testUtil.createOutcomeResponse(INFORMATION))));
+  @Nested
+  @SpringBootTest(
+      properties = {
+        "feature.flag.ars_validation_enabled=true",
+        "feature.flag.new_api_endpoints=false"
+      })
+  @AutoConfigureMockMvc
+  class NotificationController_DEFAULT {
+
+    @Value("${ars.context-path}")
+    private String contextPath;
+
+    @Autowired private MockMvc mockMvc;
+    @MockitoBean private ValidationServiceClient validationClient;
+    @MockitoBean private FhirStorageServiceClient fssClient;
+    @MockitoSpyBean private PseudonymisationService pseudonymisationService;
+
+    private static Stream<Arguments> shouldAcceptXmlAndJsonContentType() {
+      return Stream.of(
+          Arguments.of(
+              APPLICATION_JSON_VALUE,
+              (Consumer<ValidationServiceClient>)
+                  client ->
+                      when(client.validateJsonBundle(any(), anyString()))
+                          .thenReturn(testUtil.createOutcomeResponse(INFORMATION))),
+          Arguments.of(
+              APPLICATION_XML_VALUE,
+              (Consumer<ValidationServiceClient>)
+                  client ->
+                      when(client.validateXmlBundle(any(), anyString()))
+                          .thenReturn(testUtil.createOutcomeResponse(INFORMATION))));
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void shouldAcceptXmlAndJsonContentType(
+        String contentType, Consumer<ValidationServiceClient> setup) throws Exception {
+      setup.accept(validationClient);
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(contentType)
+                  .accept(APPLICATION_JSON_VALUE)
+                  .content(testUtil.getValidArsNotification(contentType)))
+          .andDo(print())
+          .andExpectAll(
+              status().is2xxSuccessful(),
+              jsonPath("$.resourceType").value("Parameters"),
+              jsonPath("$.parameter[0].name").value(BUNDLE_IDENTIFIER_PARAMETER_NAME),
+              jsonPath("$.parameter[0].valueIdentifier.value").value(matchesRegex(UUID_REGEX)),
+              jsonPath("$.parameter[1].name").value(SPECIMEN_IDENTIFIER_PARAMETER_NAME),
+              jsonPath("$.parameter[1].valueIdentifier.value").value("23-000034"),
+              jsonPath("$.parameter[2].name").value(OPERATION_OUTCOME_PARAMETER_NAME));
+    }
+
+    @Test
+    void shouldReturnContentTypeFromRequestInResponseWhenAcceptAll() throws Exception {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .accept(ALL_VALUE)
+                  .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
+          .andExpect(status().is2xxSuccessful())
+          .andExpect(
+              result ->
+                  result
+                      .getResponse()
+                      .getContentType()
+                      .equals(APPLICATION_JSON_VALUE + ";charset=UTF-8"));
+    }
+
+    @Test
+    void shouldReturnTwoSpecimenIdentifier() throws Exception {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .accept(APPLICATION_JSON_VALUE)
+                  .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON)))
+          .andExpectAll(
+              status().is2xxSuccessful(),
+              jsonPath("$.resourceType").value("Parameters"),
+              jsonPath("$.parameter[0].name").value(BUNDLE_IDENTIFIER_PARAMETER_NAME),
+              jsonPath("$.parameter[1].name").value(SPECIMEN_IDENTIFIER_PARAMETER_NAME),
+              jsonPath("$.parameter[1].valueIdentifier.value").value("O24-001081"),
+              jsonPath("$.parameter[2].name").value(SPECIMEN_IDENTIFIER_PARAMETER_NAME),
+              jsonPath("$.parameter[2].valueIdentifier.value").value("24-003257"),
+              jsonPath("$.parameter[3].name").value(OPERATION_OUTCOME_PARAMETER_NAME))
+          .andDo(print());
+    }
+
+    @Test
+    void shouldReturn200IfSeverityOnlyWarning() throws Exception {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(WARNING));
+      when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
+          .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    void shouldReturnContentTypeXmlWhenAcceptHeaderSet() throws Exception {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(WARNING));
+      when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .accept(APPLICATION_XML_VALUE)
+                  .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
+          .andExpect(status().is2xxSuccessful())
+          .andExpect(
+              result ->
+                  result
+                      .getResponse()
+                      .getContentType()
+                      .equals(APPLICATION_XML_VALUE + ";charset=UTF-8"));
+    }
+
+    @Test
+    void shouldReturn422IfSeverityOnError() throws Exception {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(ERROR));
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
+          .andExpectAll(
+              status().isUnprocessableEntity(),
+              jsonPath("$.resourceType").value("OperationOutcome"),
+              jsonPath("$.issue").isArray(),
+              jsonPath("$.issue", hasSize(2)),
+              jsonPath("$.issue[0].severity").value("error"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {APPLICATION_OCTET_STREAM_VALUE, APPLICATION_PDF_VALUE, ""})
+    void shouldReturn415IfWrongContentType(String contentType) throws Exception {
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .contentType(contentType)
+                  .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
+          .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void shouldReturn405IfNoContentTypeProvided() throws Exception {
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
+          .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void shouldReturn400IfNoBodyProvided() throws Exception {
+      mockMvc
+          .perform(post(contextPath + NOTIFICATION_URL).contentType(APPLICATION_JSON_VALUE))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldCallPseudonymisationServiceMethodIfPostSuccesfully() throws Exception {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .accept(APPLICATION_JSON_VALUE)
+                  .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
+          .andExpect(status().is2xxSuccessful());
+      verify(pseudonymisationService, times(1)).replacePatientIdentifier(any(Bundle.class));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldReturn500IfFssThrowsException() {
+      when(fssClient.sendNotification(anyString())).thenThrow(ServiceCallException.class);
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .accept(APPLICATION_JSON_VALUE)
+                  .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
+          .andExpect(status().isInternalServerError());
+    }
   }
 
-  @ParameterizedTest
-  @MethodSource
-  void shouldAcceptXmlAndJsonContentType(
-      String contentType, Consumer<ValidationServiceClient> setup) throws Exception {
-    setup.accept(validationClient);
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(contentType)
-                .accept(APPLICATION_JSON_VALUE)
-                .content(testUtil.getValidArsNotification(contentType)))
-        .andDo(print())
-        .andExpectAll(
-            status().is2xxSuccessful(),
-            jsonPath("$.resourceType").value("Parameters"),
-            jsonPath("$.parameter[0].name").value(BUNDLE_IDENTIFIER_PARAMETER_NAME),
-            jsonPath("$.parameter[0].valueIdentifier.value").value(matchesRegex(UUID_REGEX)),
-            jsonPath("$.parameter[1].name").value(SPECIMEN_IDENTIFIER_PARAMETER_NAME),
-            jsonPath("$.parameter[1].valueIdentifier.value").value("23-000034"),
-            jsonPath("$.parameter[2].name").value(OPERATION_OUTCOME_PARAMETER_NAME));
-  }
+  @Nested
+  @SpringBootTest(
+      properties = {
+        "feature.flag.ars_validation_enabled=true",
+        "feature.flag.new_api_endpoints=true",
+      })
+  @AutoConfigureMockMvc
+  class NotificationController_FEATURE_FLAG_NEW_API_ENDPOINTS {
 
-  @Test
-  void shouldReturnContentTypeFromRequestInResponseWhenAcceptAll() throws Exception {
-    when(validationClient.validateJsonBundle(anyString()))
-        .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .accept(ALL_VALUE)
-                .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
-        .andExpect(status().is2xxSuccessful())
-        .andExpect(
-            result ->
-                result
-                    .getResponse()
-                    .getContentType()
-                    .equals(APPLICATION_JSON_VALUE + ";charset=UTF-8"));
-  }
+    @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
 
-  @Test
-  void shouldReturnTwoSpecimenIdentifier() throws Exception {
-    when(validationClient.validateJsonBundle(anyString()))
-        .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .accept(APPLICATION_JSON_VALUE)
-                .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON)))
-        .andExpectAll(
-            status().is2xxSuccessful(),
-            jsonPath("$.resourceType").value("Parameters"),
-            jsonPath("$.parameter[0].name").value(BUNDLE_IDENTIFIER_PARAMETER_NAME),
-            jsonPath("$.parameter[1].name").value(SPECIMEN_IDENTIFIER_PARAMETER_NAME),
-            jsonPath("$.parameter[1].valueIdentifier.value").value("O24-001081"),
-            jsonPath("$.parameter[2].name").value(SPECIMEN_IDENTIFIER_PARAMETER_NAME),
-            jsonPath("$.parameter[2].valueIdentifier.value").value("24-003257"),
-            jsonPath("$.parameter[3].name").value(OPERATION_OUTCOME_PARAMETER_NAME))
-        .andDo(print());
-  }
+    @Value("${ars.context-path}")
+    private String contextPath;
 
-  @Test
-  void shouldReturn200IfSeverityOnlyWarning() throws Exception {
-    when(validationClient.validateJsonBundle(anyString()))
-        .thenReturn(testUtil.createOutcomeResponse(WARNING));
-    when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
-        .andExpect(status().is2xxSuccessful());
-  }
+    @Autowired private MockMvc mockMvc;
+    @MockitoBean private ValidationServiceClient validationClient;
+    @MockitoBean private FhirStorageServiceClient fssClient;
+    @MockitoSpyBean private PseudonymisationService pseudonymisationService;
 
-  @Test
-  void shouldReturnContentTypeXmlWhenAcceptHeaderSet() throws Exception {
-    when(validationClient.validateJsonBundle(anyString()))
-        .thenReturn(testUtil.createOutcomeResponse(WARNING));
-    when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .accept(APPLICATION_XML_VALUE)
-                .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
-        .andExpect(status().is2xxSuccessful())
-        .andExpect(
-            result ->
-                result
-                    .getResponse()
-                    .getContentType()
-                    .equals(APPLICATION_XML_VALUE + ";charset=UTF-8"));
-  }
-
-  @Test
-  void shouldReturn422IfSeverityOnError() throws Exception {
-    when(validationClient.validateJsonBundle(anyString()))
-        .thenReturn(testUtil.createOutcomeResponse(ERROR));
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
-        .andExpectAll(
-            status().isUnprocessableEntity(),
-            jsonPath("$.resourceType").value("OperationOutcome"),
-            jsonPath("$.issue").isArray(),
-            jsonPath("$.issue", hasSize(2)),
-            jsonPath("$.issue[0].severity").value("error"));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {APPLICATION_OCTET_STREAM_VALUE, APPLICATION_PDF_VALUE, ""})
-  void shouldReturn415IfWrongContentType(String contentType) throws Exception {
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .contentType(contentType)
-                .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
-        .andExpect(status().isUnsupportedMediaType());
-  }
-
-  @Test
-  void shouldReturn405IfNoContentTypeProvided() throws Exception {
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
-        .andExpect(status().isUnsupportedMediaType());
-  }
-
-  @Test
-  void shouldReturn400IfNoBodyProvided() throws Exception {
-    mockMvc
-        .perform(post(NOTIFICATION_URL).contentType(APPLICATION_JSON_VALUE))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void shouldCallPseudonymisationServiceMethodIfPostSuccesfully() throws Exception {
-    when(validationClient.validateJsonBundle(anyString()))
-        .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    when(fssClient.sendNotification(anyString())).thenReturn(ResponseEntity.ok().build());
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .accept(APPLICATION_JSON_VALUE)
-                .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
-        .andExpect(status().is2xxSuccessful());
-    verify(pseudonymisationService, times(1)).replacePatientIdentifier(any(Bundle.class));
-  }
-
-  @Test
-  @SneakyThrows
-  void shouldReturn500IfFssThrowsException() {
-    when(fssClient.sendNotification(anyString())).thenThrow(ServiceCallException.class);
-    mockMvc
-        .perform(
-            post(NOTIFICATION_URL)
-                .header("Authorization", TEST_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .accept(APPLICATION_JSON_VALUE)
-                .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
-        .andExpect(status().isInternalServerError());
+    @Test
+    @SneakyThrows
+    void shouldSetHeaderCorrectlyForVsWithFeatureFlagNewRoutsTrue() {
+      String apiVersion = "apiVersion";
+      String profile = "profile";
+      mockMvc.perform(
+          post(contextPath + NOTIFICATION_URL)
+              .header("Authorization", TEST_TOKEN)
+              .header(HEADER_FHIR_API_VERSION, apiVersion)
+              .header(HEADER_FHIR_PROFILE, profile)
+              .contentType(APPLICATION_JSON_VALUE)
+              .accept(APPLICATION_JSON_VALUE)
+              .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON)));
+      verify(validationClient)
+          .validateJsonBundle(
+              headerCaptor.capture(),
+              eq(testUtil.readFileToString(VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON)));
+      assertThat(headerCaptor.getValue())
+          .isNotNull()
+          .hasSize(3)
+          .containsKey(HEADER_FHIR_PROFILE)
+          .extractingByKey(HEADER_FHIR_PROFILE)
+          .isEqualTo(List.of(profile));
+      assertThat(headerCaptor.getValue())
+          .extractingByKey(HEADER_FHIR_API_VERSION)
+          .isEqualTo(List.of(apiVersion));
+    }
   }
 }

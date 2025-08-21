@@ -26,20 +26,45 @@ package de.gematik.demis.ars.service.service.pseudonymisation;
  * #L%
  */
 
+import static de.gematik.demis.ars.service.exception.ErrorCode.MISSING_RESOURCE;
+import static java.util.stream.Collectors.toCollection;
+
+import de.gematik.demis.ars.service.exception.ArsServiceException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Specimen;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /** Provides functionality to pseudonymize {@link Patient} resources within a {@link Bundle}. */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PseudonymisationService {
 
   private static final String UUID_PREFIX = "urn:uuid:";
+
+  private final SurveillancePseudonymServiceClient pseudonymServiceClient;
+
+  @Value("${feature.flag.surveillance_pseudonym_service_enabled}")
+  private boolean pseudonymServiceClientEnabled;
+
+  private static LocalDate toLocalDate(final DateTimeType date) {
+    final var timeZone =
+        date.getTimeZone() != null ? date.getTimeZone().toZoneId() : ZoneId.systemDefault();
+    return date.getValue().toInstant().atZone(timeZone).toLocalDate();
+  }
 
   /**
    * Replaces the identifiers of {@link Patient} resources within the given {@link Bundle} with a
@@ -51,29 +76,93 @@ public class PseudonymisationService {
    *
    * @param bundle the {@link Bundle} containing the resources to process
    */
-  public void replacePatientIdentifier(Bundle bundle) {
-    for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      Resource resource = entry.getResource();
+  public void replacePatientIdentifier(final Bundle bundle) {
+    final LocalDate referenceDate = getReferenceDate(bundle);
+
+    for (final Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+      final Resource resource = entry.getResource();
       if (resource instanceof Patient patient) {
-        removeIdentifiers(patient);
-        addPseudonymizedIdentifier(patient);
+        replacePseudonyms(patient, referenceDate);
       }
     }
   }
 
-  private void removeIdentifiers(Patient patient) {
+  private void replacePseudonyms(final Patient patient, final LocalDate referenceDate) {
+    final List<String> pseudonyms = getPseudonyms(patient);
+    removePseudonyms(patient);
+    final PseudonymResponse newPseudonym;
+    if (pseudonymServiceClientEnabled) {
+      newPseudonym = callPseudoService(pseudonyms, referenceDate);
+    } else {
+      newPseudonym = generateFixPseudonym();
+    }
+    addPseudonym(patient, newPseudonym);
+  }
+
+  /**
+   * Extracts the reference date from the given bundle.
+   *
+   * <p>Fhir Path of reference date: Specimen/collection/collectedDateTime
+   *
+   * <p>Multiple specimens are possible, but than all collectedDateTimes should be equal. Otherwise,
+   * the smallest date is taken and a warning is logged.
+   */
+  private LocalDate getReferenceDate(final Bundle bundle) {
+    final SortedSet<LocalDate> dates =
+        bundle.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(Specimen.class::isInstance)
+            .map(Specimen.class::cast)
+            .filter(
+                specimen ->
+                    specimen.hasCollection() && specimen.getCollection().hasCollectedDateTimeType())
+            .map(specimen -> specimen.getCollection().getCollectedDateTimeType())
+            .map(PseudonymisationService::toLocalDate)
+            .collect(toCollection(TreeSet::new));
+
+    if (dates.isEmpty()) {
+      throw new ArsServiceException(MISSING_RESOURCE, "No reference date");
+    }
+    if (dates.size() > 1) {
+      log.warn("{} different reference dates found. Take the smallest one.", dates.size());
+    }
+
+    return dates.first();
+  }
+
+  private PseudonymResponse callPseudoService(
+      final List<String> pseudonyms, final LocalDate referenceDate) {
+    if (pseudonyms.size() != 2) {
+      throw new ArsServiceException(
+          MISSING_RESOURCE, "Validation missing. Patient must have exactly 2 identifiers");
+    }
+
+    final PseudonymRequest request =
+        PseudonymRequest.builder()
+            .pseudonym1(pseudonyms.get(0))
+            .pseudonym2(pseudonyms.get(1))
+            .date(referenceDate)
+            .build();
+
+    return pseudonymServiceClient.createPseudonym(request);
+  }
+
+  private List<String> getPseudonyms(final Patient patient) {
+    return patient.getIdentifier().stream().map(Identifier::getValue).toList();
+  }
+
+  private void removePseudonyms(final Patient patient) {
     patient.getIdentifier().clear();
   }
 
-  private void addPseudonymizedIdentifier(Patient patient) {
-    Identifier newIdentifier = new Identifier();
-    newIdentifier.setSystem("https://demis.rki.de/fhir/sid/SurveillancePatientPseudonymPeriod");
-    newIdentifier.setValue(generatePseudonym());
-    patient.getIdentifier().add(newIdentifier);
+  private void addPseudonym(final Patient patient, final PseudonymResponse newPseudonym) {
+    patient.addIdentifier().setSystem(newPseudonym.system()).setValue(newPseudonym.value());
   }
 
-  private String generatePseudonym() {
-    UUID tempUuid = UUID.fromString("10101010-1010-1010-1010-101010101010");
-    return UUID_PREFIX + tempUuid;
+  private PseudonymResponse generateFixPseudonym() {
+    final UUID tempUuid = UUID.fromString("10101010-1010-1010-1010-101010101010");
+    final String pseudonym = UUID_PREFIX + tempUuid;
+    return new PseudonymResponse(
+        "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym", pseudonym);
   }
 }

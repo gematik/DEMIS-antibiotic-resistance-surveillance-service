@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service.exception;
+package de.gematik.demis.ars.service.service.pseudonymisation;
 
 /*-
  * #%L
@@ -26,10 +26,21 @@ package de.gematik.demis.ars.service.exception;
  * #L%
  */
 
-@SuppressWarnings("java:S1214")
-public interface ServiceCallErrorCode {
-  String VS = "VS";
-  String CES = "CES";
-  String FSS = "FSS";
-  String PSEUDO = "PSEUDO";
+import static de.gematik.demis.ars.service.exception.ServiceCallErrorCode.PSEUDO;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import de.gematik.demis.service.base.feign.annotations.ErrorCode;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+@FeignClient(name = "surveillance-pseudonym-service", url = "${ars.pseudo.url}")
+interface SurveillancePseudonymServiceClient {
+
+  @PostMapping(
+      path = "/pseudonym",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE)
+  @ErrorCode(PSEUDO)
+  PseudonymResponse createPseudonym(@RequestBody final PseudonymRequest input);
 }

@@ -3,7 +3,7 @@ debug:
   enable: false
 
 # Number of Pod Replicas desired
-replicaCount: 1
+replicaCount: 2
 
 # Required Values for the Chart
 required:
@@ -63,7 +63,10 @@ podAnnotations:
   prometheus.io/port: "8080"
 
 # Environment Variables to be defined
-customEnvVars: {}
+customEnvVars:
+  FEATURE_FLAG_ARS_VALIDATION_ENABLED: "false"
+  FEATURE_FLAG_NEW_API_ENDPOINTS: "false"
+  FEATURE_FLAG_SURVEILLANCE_PSEUDONYM_SERVICE_ENABLED: "false"
 
 # Pod Security Context - applies to all containers in a Pod
 podSecurityContext: 
