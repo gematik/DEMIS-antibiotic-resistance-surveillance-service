@@ -64,6 +64,8 @@ public class TestUtils {
       "testdata/ars-notification-no-composition.json";
   public static final String ARS_NOTIFICATION_NO_PATIENT_IDENTIFIER_JSON =
       "testdata/ars-notification-no-patient-identifier.json";
+  public static final String ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON =
+      "testdata/ars-notification-duplicate-patient-identifiers.json";
   public static final String ARS_NOTIFICATION_INVALID_PATIENT_IDENTIFIER_JSON =
       "testdata/ars-notification-no-patient-identifier.json";
   public static final String ARS_NOTIFICATION_THREE_PATIENT_IDENTIFIER =

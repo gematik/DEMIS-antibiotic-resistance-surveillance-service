@@ -39,8 +39,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import de.gematik.demis.ars.service.exception.ArsValidationException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
-import de.gematik.demis.ars.service.service.fhir.FhirOperationOutcomeOperationService;
+import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.error.ServiceCallException;
+import de.gematik.demis.service.base.fhir.outcome.FhirOperationOutcomeService;
 import feign.Response;
 import feign.codec.Decoder;
 import feign.codec.StringDecoder;
@@ -57,7 +58,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -66,7 +66,7 @@ import org.springframework.stereotype.Service;
 public class NotificationValidationService {
 
   private final ValidationServiceClient validationServiceClient;
-  private final FhirOperationOutcomeOperationService outcomeService;
+  private final FhirOperationOutcomeService outcomeService;
   private final Decoder decoder = new StringDecoder();
   private final HttpServletRequest httpServletRequest;
 
@@ -78,13 +78,13 @@ public class NotificationValidationService {
   @Setter
   private boolean isVersionHeaderForwardEnabled;
 
-  public OperationOutcome validateFhir(String content, MediaType mediaType) {
+  public OperationOutcome validateFhir(String content, MessageType messageType) {
     if (!validationEnabled) {
-      return outcomeService.generatePositiveOutcome();
+      return processPositivOperationOutcome(new OperationOutcome());
     }
     HttpStatusCode status;
     String body;
-    try (Response response = getValidationResponse(content, mediaType)) {
+    try (Response response = getValidationResponse(content, messageType)) {
       status = HttpStatus.valueOf(response.status());
       body = readResponse(response);
     }
@@ -105,7 +105,13 @@ public class NotificationValidationService {
       handleValidationError(status, operationOutcome);
     }
     log.debug("Fhir Bundle successfully validated.");
-    return outcomeService.success(operationOutcome);
+    return processPositivOperationOutcome(operationOutcome);
+  }
+
+  private OperationOutcome processPositivOperationOutcome(final OperationOutcome operationOutcome) {
+    outcomeService.processOutcome(operationOutcome);
+    operationOutcome.getIssue().addFirst(outcomeService.allOk());
+    return operationOutcome;
   }
 
   private void handleValidationError(HttpStatusCode status, OperationOutcome operationOutcome) {
@@ -113,16 +119,14 @@ public class NotificationValidationService {
         operationOutcome.getIssue().stream()
             .anyMatch(issue -> issue.getSeverity() == IssueSeverity.FATAL);
     final ErrorCode errorCode = hasFatalIssue ? FHIR_VALIDATION_FATAL : FHIR_VALIDATION_ERROR;
-    operationOutcome =
-        outcomeService.error(operationOutcome, status, errorCode, "Fhir Bundle validation failed.");
-    throw new ArsValidationException(errorCode, operationOutcome);
+    throw new ArsValidationException(errorCode, "Fhir Bundle validation failed.", operationOutcome);
   }
 
   private List<String> headersFromRequestByName(@Nonnull String headerName) {
     return ofNullable(httpServletRequest.getHeader(headerName)).map(List::of).orElse(null);
   }
 
-  private Response getValidationResponse(String content, MediaType mediaType) {
+  private Response getValidationResponse(String content, MessageType messageType) {
 
     final HttpHeaders headers = new HttpHeaders();
 
@@ -133,7 +137,7 @@ public class NotificationValidationService {
 
     headers.computeIfAbsent(HEADER_FHIR_PROFILE_OLD, ignored -> List.of("ars-profile-snapshots"));
 
-    return mediaType.equals(APPLICATION_JSON)
+    return messageType == MessageType.JSON
         ? validationServiceClient.validateJsonBundle(headers, content)
         : validationServiceClient.validateXmlBundle(headers, content);
   }

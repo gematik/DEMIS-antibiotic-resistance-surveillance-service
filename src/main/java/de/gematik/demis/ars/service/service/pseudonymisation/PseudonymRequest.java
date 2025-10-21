@@ -30,4 +30,4 @@ import java.time.LocalDate;
 import lombok.Builder;
 
 @Builder
-record PseudonymRequest(String pseudonym1, String pseudonym2, LocalDate date) {}
+public record PseudonymRequest(String pseudonym1, String pseudonym2, LocalDate date) {}

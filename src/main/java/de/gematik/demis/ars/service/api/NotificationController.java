@@ -26,34 +26,30 @@ package de.gematik.demis.ars.service.api;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.api.FhirContentTypeMapper.mapStringToMediaType;
-import static de.gematik.demis.ars.service.parser.FhirParser.serializeResource;
-import static java.util.Objects.isNull;
-
 import de.gematik.demis.ars.service.service.NotificationService;
+import de.gematik.demis.fhirparserlibrary.MessageType;
+import de.gematik.demis.service.base.fhir.response.FhirResponseConverter;
 import lombok.AllArgsConstructor;
 import org.hl7.fhir.r4.model.Parameters;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
 
 @RestController
 @AllArgsConstructor
 public class NotificationController implements NotificationsApi {
 
   public final NotificationService service;
+  public final FhirResponseConverter fhirConverter;
 
   @Override
-  public ResponseEntity<String> fhirProcessNotificationPost(
-      String authorization, String contentType, String content, String accept) {
-    MediaType fhirMediaType = mapStringToMediaType(contentType);
-    Parameters savedNotification = service.process(content, fhirMediaType, authorization);
-    MediaType responseMediaType =
-        isNull(accept) || accept.equals(MediaType.ALL_VALUE)
-            ? fhirMediaType
-            : mapStringToMediaType(accept);
-    return ResponseEntity.ok()
-        .contentType(responseMediaType)
-        .body(serializeResource(savedNotification, responseMediaType));
+  public ResponseEntity<Object> fhirProcessNotificationPost(
+      final String authorization,
+      final String contentType,
+      final String content,
+      final WebRequest webRequest) {
+    final MessageType messageType = MessageType.getMessageType(contentType);
+    final Parameters savedNotification = service.process(content, messageType, authorization);
+    return fhirConverter.buildResponse(ResponseEntity.ok(), savedNotification, webRequest);
   }
 }

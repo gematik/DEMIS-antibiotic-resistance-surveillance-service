@@ -33,6 +33,7 @@ import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
 import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.validation.NotificationValidationService;
+import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,6 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -62,10 +62,10 @@ public class NotificationService {
   private final ContextEnrichmentService contextEnrichmentService;
   private final FssService fssService;
 
-  public Parameters process(String content, MediaType mediaType, String authorization) {
+  public Parameters process(String content, MessageType messageType, String authorization) {
     try {
-      OperationOutcome validationOutcome = validationService.validateFhir(content, mediaType);
-      Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, mediaType);
+      OperationOutcome validationOutcome = validationService.validateFhir(content, messageType);
+      Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, messageType);
       pseudonymisationService.replacePatientIdentifier(bundle);
       String notificationId = UUID.randomUUID().toString();
       contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);

@@ -2,6 +2,9 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.2.2
+- Errors thrown by surveillance pseudonmy service will lead to a 422 status code response
+
 ## Release 1.2.1
 - Add default feature flag FEATURE_FLAG_ARS_VALIDATION_ENABLED to values.yaml
 - Update spring-parent to 2.12.12

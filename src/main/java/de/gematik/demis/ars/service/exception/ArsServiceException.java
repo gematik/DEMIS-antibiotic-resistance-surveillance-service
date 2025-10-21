@@ -28,21 +28,16 @@ package de.gematik.demis.ars.service.exception;
 
 import de.gematik.demis.service.base.error.ServiceException;
 import lombok.Getter;
-import org.hl7.fhir.r4.model.OperationOutcome;
 
 @Getter
 public class ArsServiceException extends ServiceException {
 
-  private final OperationOutcome operationOutcome;
-
   public ArsServiceException(final ErrorCode errorCode, final String message) {
     super(errorCode.getHttpStatus(), errorCode.getCode(), message, null);
-    operationOutcome = null;
   }
 
   public ArsServiceException(
       final ErrorCode errorCode, final String message, final Throwable cause) {
     super(errorCode.getHttpStatus(), errorCode.getCode(), message, cause);
-    operationOutcome = null;
   }
 }

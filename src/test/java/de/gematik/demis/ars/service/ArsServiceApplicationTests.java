@@ -37,21 +37,26 @@ import de.gematik.demis.ars.service.service.NotificationService;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.context.request.WebRequest;
 
 @SpringBootTest
 class ArsServiceApplicationTests {
 
   @MockitoBean private NotificationService notificationService;
+  @Autowired private NotificationController notificationController;
 
   @Test
   void contextLoads() {
     Parameters params = new Parameters().addParameter("test", new StringType("success"));
     when(notificationService.process(any(), any(), any())).thenReturn(params);
+    final WebRequest webRequest = Mockito.mock(WebRequest.class);
     assertThat(
-            new NotificationController(notificationService)
-                .fhirProcessNotificationPost("Bearer", "application/fhir+json", "test", null)
+            notificationController
+                .fhirProcessNotificationPost("Bearer", "application/fhir+json", "test", webRequest)
                 .getBody())
         .isEqualTo(serializeResource(params, APPLICATION_JSON));
   }

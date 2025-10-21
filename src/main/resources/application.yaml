@@ -19,6 +19,14 @@ ars:
   pseudo:
     url: ${DEMIS_NETWORK_ARS_PSEUDO_SERVICE_ADDRESS:http://surveillance-pseudonym-service-ars.demis.svc.cluster.local}
 
+base:
+  fhir:
+    enabled: true
+    error-as-operation-outcome: true
+    operation-outcome:
+      profile: "https://demis.rki.de/fhir/StructureDefinition/ProcessNotificationResponse"
+      issue-threshold: ${ars.outcome-issue-threshold}
+
 feature:
   flag:
     ars_validation_enabled: false

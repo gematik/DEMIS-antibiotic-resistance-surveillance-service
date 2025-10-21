@@ -37,12 +37,12 @@ import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.context.request.WebRequest;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
@@ -59,8 +59,6 @@ public interface NotificationsApi {
    * @param authorization (required)
    * @param contentType Tells whether the request body is in JSON or XML format. (required)
    * @param body (required)
-   * @param accept Tells whether the response body is in JSON or XML format. If not set the
-   *     content-type will be used (optional)
    * @return Successful request. (status code 200) or The request will not be processed due to a
    *     client error. (status code 400) or The request will not be processed due to invalid
    *     authentication credentials. (status code 401) or The request will not be processed due to
@@ -75,7 +73,7 @@ public interface NotificationsApi {
       value = "${ars.context-path}$process-notification",
       produces = {"application/json", "application/xml"},
       consumes = {"application/json", "application/xml"})
-  ResponseEntity<String> fhirProcessNotificationPost(
+  ResponseEntity<Object> fhirProcessNotificationPost(
       @NotNull
           @Parameter(
               name = "Authorization",
@@ -93,12 +91,5 @@ public interface NotificationsApi {
           @RequestHeader(value = "Content-Type", required = true)
           String contentType,
       @Parameter(name = "body", description = "", required = true) @Valid @RequestBody String body,
-      @Parameter(
-              name = "Accept",
-              description =
-                  "Tells whether the response body is in JSON or XML format. If not set the content-type will be used",
-              in = ParameterIn.HEADER)
-          @RequestHeader(value = "Accept", required = false)
-          @Nullable
-          String accept);
+      WebRequest webRequest);
 }

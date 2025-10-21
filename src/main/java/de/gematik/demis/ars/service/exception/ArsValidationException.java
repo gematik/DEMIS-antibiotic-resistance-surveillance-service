@@ -26,17 +26,14 @@ package de.gematik.demis.ars.service.exception;
  * #L%
  */
 
-import de.gematik.demis.service.base.error.ServiceException;
-import lombok.Getter;
+import de.gematik.demis.service.base.fhir.error.ServiceOperationOutcomeException;
 import org.hl7.fhir.r4.model.OperationOutcome;
 
-@Getter
-public class ArsValidationException extends ServiceException {
-  private final OperationOutcome operationOutcome;
+@SuppressWarnings("java:S110") // we accept that we have an inheritance tree of 6 classes
+public class ArsValidationException extends ServiceOperationOutcomeException {
 
   public ArsValidationException(
-      final ErrorCode errorCode, final OperationOutcome operationOutcome) {
-    super(errorCode.getHttpStatus(), errorCode.getCode(), null);
-    this.operationOutcome = operationOutcome;
+      final ErrorCode errorCode, final String message, final OperationOutcome operationOutcome) {
+    super(errorCode.getHttpStatus(), errorCode.getCode(), message, operationOutcome);
   }
 }
