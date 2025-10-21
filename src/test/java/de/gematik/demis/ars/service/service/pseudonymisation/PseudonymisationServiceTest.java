@@ -26,6 +26,7 @@ package de.gematik.demis.ars.service.service.pseudonymisation;
  * #L%
  */
 
+import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON;
 import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_INVALID_PATIENT_IDENTIFIER_JSON;
 import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_NO_PATIENT_IDENTIFIER_JSON;
 import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_THREE_PATIENT_IDENTIFIER;
@@ -34,34 +35,30 @@ import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATIO
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import de.gematik.demis.ars.service.exception.ErrorCode;
 import de.gematik.demis.ars.service.utils.TestUtils;
+import de.gematik.demis.service.base.error.ServiceException;
 import java.util.HashSet;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class PseudonymisationServiceTest {
 
-  TestUtils testUtils = new TestUtils();
-
-  private final PseudonymisationService pseudonymisationService = new PseudonymisationService(null);
   private static final String FIXED_UUID_PREFIX = "urn:uuid:";
   private static final String FIXED_UUID = "10101010-1010-1010-1010-101010101010";
   private static final String FIXED_SYSTEM =
       "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym";
+  private final PseudonymisationService pseudonymisationService = new PseudonymisationService(null);
+  TestUtils testUtils = new TestUtils();
 
   @ParameterizedTest
-  @ValueSource(
-      strings = {
-        VALID_ARS_NOTIFICATION_JSON,
-        VALID_ARS_NOTIFICATION_XML,
-        ARS_NOTIFICATION_NO_PATIENT_IDENTIFIER_JSON,
-        ARS_NOTIFICATION_INVALID_PATIENT_IDENTIFIER_JSON,
-        ARS_NOTIFICATION_THREE_PATIENT_IDENTIFIER
-      })
+  @ValueSource(strings = {VALID_ARS_NOTIFICATION_JSON, VALID_ARS_NOTIFICATION_XML})
   void testReplaceIds(String testDataPath) {
     Bundle bundle = testUtils.readFileToBundle(testDataPath);
 
@@ -78,20 +75,13 @@ class PseudonymisationServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(
-      strings = {
-        VALID_ARS_NOTIFICATION_JSON,
-        VALID_ARS_NOTIFICATION_XML,
-        ARS_NOTIFICATION_NO_PATIENT_IDENTIFIER_JSON,
-        ARS_NOTIFICATION_THREE_PATIENT_IDENTIFIER
-      })
+  @ValueSource(strings = {VALID_ARS_NOTIFICATION_JSON, VALID_ARS_NOTIFICATION_XML})
   void shouldNotContainOldIdentifiersAfterPseudonymisation(String testDataPath) {
     Bundle bundle = testUtils.readFileToBundle(testDataPath);
 
     Set<String> oldIdentifiers = new HashSet<>();
     for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      if (entry.getResource() instanceof Patient) {
-        Patient patient = (Patient) entry.getResource();
+      if (entry.getResource() instanceof final Patient patient) {
         for (Identifier identifier : patient.getIdentifier()) {
           oldIdentifiers.add(identifier.getValue());
         }
@@ -100,8 +90,7 @@ class PseudonymisationServiceTest {
     pseudonymisationService.replacePatientIdentifier(bundle);
 
     for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      if (entry.getResource() instanceof Patient) {
-        Patient patient = (Patient) entry.getResource();
+      if (entry.getResource() instanceof final Patient patient) {
         for (Identifier identifier : patient.getIdentifier()) {
           String newIdentifier = identifier.getValue();
           assertFalse(
@@ -112,5 +101,36 @@ class PseudonymisationServiceTest {
         }
       }
     }
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        ARS_NOTIFICATION_NO_PATIENT_IDENTIFIER_JSON,
+        ARS_NOTIFICATION_INVALID_PATIENT_IDENTIFIER_JSON,
+        ARS_NOTIFICATION_THREE_PATIENT_IDENTIFIER
+      })
+  void notExactlyTwoPseudonyms_shouldThrowsException(final String testDataPath) {
+    final Bundle bundle = testUtils.readFileToBundle(testDataPath);
+
+    final ServiceException ex =
+        Assertions.catchThrowableOfType(
+            ServiceException.class, () -> pseudonymisationService.replacePatientIdentifier(bundle));
+
+    assertThat(ex).isNotNull();
+    assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.MISSING_RESOURCE.getCode());
+  }
+
+  @Test
+  void duplicatePatientIdentifier_shouldThrowsException() {
+    final Bundle bundle =
+        testUtils.readFileToBundle(ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON);
+
+    final ServiceException ex =
+        Assertions.catchThrowableOfType(
+            ServiceException.class, () -> pseudonymisationService.replacePatientIdentifier(bundle));
+
+    assertThat(ex).isNotNull();
+    assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_PSEUDONYMS.getCode());
   }
 }

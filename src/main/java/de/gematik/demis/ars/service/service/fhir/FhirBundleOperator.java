@@ -30,8 +30,10 @@ import static de.gematik.demis.ars.service.exception.ErrorCode.MISSING_RESOURCE;
 import static de.gematik.demis.ars.service.utils.Constants.EXTENSION_URL_RECEPTION_TIME_STAMP_TYPE;
 import static de.gematik.demis.ars.service.utils.Constants.NOTIFICATION_BUNDLE_IDENTIFIER_SYSTEM;
 
+import ca.uhn.fhir.context.FhirContext;
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.fhirparserlibrary.FhirParser;
+import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -46,26 +48,28 @@ import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Specimen;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class FhirBundleOperator {
 
-  private final FhirParser fhirParser;
+  private final FhirContext fhirContext;
 
   /**
    * Takes a Fhir parameters resource as string, parses it and returns the contained <Bundle>. It`s
    * expecting that there is only one <Bundle> in <Parameters>
    *
    * @param content string representation of the Fhir parameters
-   * @param mediaType the type of the content
+   * @param messageType the type of the content
    * @return <Bundle> resource
    */
-  public Bundle parseBundleFromNotification(String content, MediaType mediaType) {
-    Bundle parsedBundle = fhirParser.parseBundleOrParameter(content, mediaType.toString());
-    return parsedBundle;
+  public Bundle parseBundleFromNotification(String content, MessageType messageType) {
+    return fhirParser().parseBundleOrParameter(content, messageType);
+  }
+
+  private FhirParser fhirParser() {
+    return new FhirParser(fhirContext);
   }
 
   /**

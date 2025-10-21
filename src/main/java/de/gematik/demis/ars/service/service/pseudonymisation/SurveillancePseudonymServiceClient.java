@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "surveillance-pseudonym-service", url = "${ars.pseudo.url}")
-interface SurveillancePseudonymServiceClient {
+public interface SurveillancePseudonymServiceClient {
 
   @PostMapping(
       path = "/pseudonym",

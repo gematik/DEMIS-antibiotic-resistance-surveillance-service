@@ -49,9 +49,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import de.gematik.demis.ars.service.exception.ArsValidationException;
-import de.gematik.demis.ars.service.service.fhir.FhirOperationOutcomeOperationService;
 import de.gematik.demis.ars.service.utils.TestUtils;
+import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.error.ServiceCallException;
+import de.gematik.demis.service.base.fhir.outcome.FhirOperationOutcomeService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -64,7 +65,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpHeaders;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,7 +72,7 @@ class NotificationValidationServiceTest {
 
   private final TestUtils testUtil = new TestUtils();
   @Mock ValidationServiceClient client;
-  @Mock FhirOperationOutcomeOperationService outcomeService;
+  @Mock FhirOperationOutcomeService outcomeService;
   @Mock HttpServletRequest httpServletRequest;
   @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
 
@@ -81,13 +81,9 @@ class NotificationValidationServiceTest {
   @BeforeEach
   void setUp() {
     underTest.setValidationEnabled(true);
-    // outcomeService should only response what he was given
     lenient()
-        .when(outcomeService.error(any(), any(), any(), any()))
-        .thenAnswer((Answer<OperationOutcome>) invocationOnMock -> invocationOnMock.getArgument(0));
-    lenient()
-        .when(outcomeService.success(any()))
-        .thenAnswer((Answer<OperationOutcome>) invocationOnMock -> invocationOnMock.getArgument(0));
+        .when(outcomeService.allOk())
+        .thenReturn(new OperationOutcome.OperationOutcomeIssueComponent().setSeverity(INFORMATION));
   }
 
   @Test
@@ -95,12 +91,12 @@ class NotificationValidationServiceTest {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
     when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_JSON);
+    OperationOutcome outcome = underTest.validateFhir(bundleString, MessageType.JSON);
     assertThat(
             outcome.getIssue().stream()
                 .map(OperationOutcome.OperationOutcomeIssueComponent::getSeverity))
         .isNotEmpty()
-        .allMatch(severity -> severity.equals(INFORMATION));
+        .containsOnly(INFORMATION);
   }
 
   @Test
@@ -108,12 +104,12 @@ class NotificationValidationServiceTest {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
     when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(WARNING));
-    OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_JSON);
+    OperationOutcome outcome = underTest.validateFhir(bundleString, MessageType.JSON);
     assertThat(
             outcome.getIssue().stream()
                 .map(OperationOutcome.OperationOutcomeIssueComponent::getSeverity))
         .isNotEmpty()
-        .allMatch(severity -> severity.equals(WARNING));
+        .contains(WARNING, INFORMATION);
   }
 
   @Test
@@ -121,7 +117,7 @@ class NotificationValidationServiceTest {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
     when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_JSON);
+    OperationOutcome outcome = underTest.validateFhir(bundleString, MessageType.JSON);
     assertThat(
             outcome.getIssue().stream()
                 .map(OperationOutcome.OperationOutcomeIssueComponent::getSeverity))
@@ -134,7 +130,7 @@ class NotificationValidationServiceTest {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_XML);
     when(client.validateXmlBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    OperationOutcome outcome = underTest.validateFhir(bundleString, APPLICATION_XML);
+    OperationOutcome outcome = underTest.validateFhir(bundleString, MessageType.XML);
     assertThat(
             outcome.getIssue().stream()
                 .map(OperationOutcome.OperationOutcomeIssueComponent::getSeverity))
@@ -150,7 +146,7 @@ class NotificationValidationServiceTest {
     ArsValidationException exception =
         assertThrows(
             ArsValidationException.class,
-            () -> underTest.validateFhir(bundleString, APPLICATION_JSON));
+            () -> underTest.validateFhir(bundleString, MessageType.JSON));
     assertThat(exception.getErrorCode()).contains(FHIR_VALIDATION_ERROR.toString());
   }
 
@@ -162,7 +158,7 @@ class NotificationValidationServiceTest {
     ArsValidationException exception =
         assertThrows(
             ArsValidationException.class,
-            () -> underTest.validateFhir(bundleString, APPLICATION_JSON));
+            () -> underTest.validateFhir(bundleString, MessageType.JSON));
     assertThat(exception.getErrorCode()).contains(FHIR_VALIDATION_FATAL.toString());
   }
 
@@ -174,7 +170,7 @@ class NotificationValidationServiceTest {
     ServiceCallException exception =
         assertThrows(
             ServiceCallException.class,
-            () -> underTest.validateFhir(bundleString, APPLICATION_JSON));
+            () -> underTest.validateFhir(bundleString, MessageType.JSON));
     assertThat(exception.getErrorCode()).contains(VS);
   }
 
@@ -182,10 +178,15 @@ class NotificationValidationServiceTest {
   void shouldReturnPositiveOutcomeIfValidationDisabledAndDoNotCallClient() {
     underTest.setValidationEnabled(false);
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    underTest.validateFhir(bundleString, APPLICATION_JSON);
-    verify(outcomeService).generatePositiveOutcome();
+    final OperationOutcome operationOutcome =
+        underTest.validateFhir(bundleString, MessageType.JSON);
     verify(client, times(0)).validateJsonBundle(any(), any());
     verify(client, times(0)).validateXmlBundle(any(), any());
+    assertThat(operationOutcome).isNotNull();
+    assertThat(operationOutcome.getIssue())
+        .hasSize(1)
+        .first()
+        .returns(INFORMATION, OperationOutcome.OperationOutcomeIssueComponent::getSeverity);
   }
 
   @Test
@@ -193,7 +194,7 @@ class NotificationValidationServiceTest {
     String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
     when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    underTest.validateFhir(bundleString, APPLICATION_JSON);
+    underTest.validateFhir(bundleString, MessageType.JSON);
 
     verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
     assertThat(headerCaptor.getValue())
@@ -218,7 +219,7 @@ class NotificationValidationServiceTest {
       when(client.validateJsonBundle(any(), eq(bundleString)))
           .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
 
-      underTest.validateFhir(bundleString, APPLICATION_JSON);
+      underTest.validateFhir(bundleString, MessageType.JSON);
 
       verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
       assertThat(headerCaptor.getValue())
@@ -238,7 +239,7 @@ class NotificationValidationServiceTest {
       String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
       when(client.validateJsonBundle(any(), eq(bundleString)))
           .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-      underTest.validateFhir(bundleString, APPLICATION_JSON);
+      underTest.validateFhir(bundleString, MessageType.JSON);
 
       verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
       assertThat(headerCaptor.getValue())

@@ -26,4 +26,4 @@ package de.gematik.demis.ars.service.service.pseudonymisation;
  * #L%
  */
 
-record PseudonymResponse(String system, String value) {}
+public record PseudonymResponse(String system, String value) {}

@@ -33,13 +33,12 @@ import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATIO
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import ca.uhn.fhir.context.FhirContext;
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
 import de.gematik.demis.ars.service.utils.TestUtils;
-import de.gematik.demis.fhirparserlibrary.FhirParser;
+import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.Date;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -54,14 +53,14 @@ class FhirBundleOperatorTest {
 
   public static final String EXAMPLE_UUID = "1234-5678-9101-1121";
   TestUtils testUtils = new TestUtils();
-  FhirBundleOperator underTest = new FhirBundleOperator(new FhirParser(FhirContext.forR4Cached()));
+  FhirBundleOperator underTest = new FhirBundleOperator(FhirContext.forR4Cached());
 
   @Test
   @SneakyThrows
   void shouldExtractBundleCorrectly() {
     Bundle bundle =
         underTest.parseBundleFromNotification(
-            testUtils.readFileToString(VALID_ARS_NOTIFICATION_JSON), APPLICATION_JSON);
+            testUtils.readFileToString(VALID_ARS_NOTIFICATION_JSON), MessageType.JSON);
     assertThat(bundle).isNotNull();
   }
 

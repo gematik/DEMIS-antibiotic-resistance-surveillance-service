@@ -45,6 +45,7 @@ import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.validation.NotificationValidationService;
 import de.gematik.demis.ars.service.utils.TestUtils;
+import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.List;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
@@ -58,7 +59,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -82,7 +82,7 @@ class NotificationServiceTest {
     doNothing().when(contextEnrichmentService).enrichBundleWithContextInformation(any(), any());
     doNothing().when(pseudonymisationService).replacePatientIdentifier(any());
     doNothing().when(fssService).sendNotificationToFss(any());
-    Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
+    Parameters output = underTest.process("test", MessageType.JSON, "");
     assertNotNull(output);
     OperationOutcome operationOutcome =
         (OperationOutcome)
@@ -106,7 +106,7 @@ class NotificationServiceTest {
     when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
     doNothing().when(fhirBundleOperator).enrichBundle(bundleCaptor.capture(), uuidCaptor.capture());
-    Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
+    Parameters output = underTest.process("test", MessageType.JSON, "");
     assertNotNull(output);
     ParametersParameterComponent notificationParam =
         output.getParameter().stream()
@@ -126,7 +126,7 @@ class NotificationServiceTest {
     when(fhirBundleOperator.getSpecimenAccessionIdentifier(any()))
         .thenReturn(List.of(new Identifier().setValue("specimenId")));
 
-    Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
+    Parameters output = underTest.process("test", MessageType.JSON, "");
     assertNotNull(output);
     List<ParametersParameterComponent> specimenParams =
         output.getParameter().stream()
@@ -148,7 +148,7 @@ class NotificationServiceTest {
             List.of(
                 new Identifier().setValue("specimenId"), new Identifier().setValue("specimenId2")));
 
-    Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
+    Parameters output = underTest.process("test", MessageType.JSON, "");
     assertNotNull(output);
     List<ParametersParameterComponent> specimenParams =
         output.getParameter().stream()
@@ -168,7 +168,7 @@ class NotificationServiceTest {
     when(fhirBundleOperator.getSpecimenAccessionIdentifier(any()))
         .thenReturn(List.of(new Identifier().setValue("specimenId")));
 
-    Parameters output = underTest.process("test", MediaType.APPLICATION_JSON, "");
+    Parameters output = underTest.process("test", MessageType.JSON, "");
 
     assertNotNull(output.getMeta());
     assertNotNull(output.getMeta().getProfile());

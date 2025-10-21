@@ -26,6 +26,7 @@ package de.gematik.demis.ars.service.service.pseudonymisation;
  * #L%
  */
 
+import static de.gematik.demis.ars.service.exception.ErrorCode.INVALID_PSEUDONYMS;
 import static de.gematik.demis.ars.service.exception.ErrorCode.MISSING_RESOURCE;
 import static java.util.stream.Collectors.toCollection;
 
@@ -33,6 +34,7 @@ import de.gematik.demis.ars.service.exception.ArsServiceException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -89,6 +91,7 @@ public class PseudonymisationService {
 
   private void replacePseudonyms(final Patient patient, final LocalDate referenceDate) {
     final List<String> pseudonyms = getPseudonyms(patient);
+    validatePseudonym(pseudonyms);
     removePseudonyms(patient);
     final PseudonymResponse newPseudonym;
     if (pseudonymServiceClientEnabled) {
@@ -97,6 +100,17 @@ public class PseudonymisationService {
       newPseudonym = generateFixPseudonym();
     }
     addPseudonym(patient, newPseudonym);
+  }
+
+  private void validatePseudonym(final List<String> pseudonyms) {
+    if (pseudonyms.size() != 2) {
+      throw new ArsServiceException(
+          MISSING_RESOURCE, "Validation missing. Patient must have exactly 2 identifiers");
+    }
+
+    if (Objects.equals(pseudonyms.get(0), pseudonyms.get(1))) {
+      throw new ArsServiceException(INVALID_PSEUDONYMS, "Pseudonyms must be different");
+    }
   }
 
   /**
@@ -132,11 +146,6 @@ public class PseudonymisationService {
 
   private PseudonymResponse callPseudoService(
       final List<String> pseudonyms, final LocalDate referenceDate) {
-    if (pseudonyms.size() != 2) {
-      throw new ArsServiceException(
-          MISSING_RESOURCE, "Validation missing. Patient must have exactly 2 identifiers");
-    }
-
     final PseudonymRequest request =
         PseudonymRequest.builder()
             .pseudonym1(pseudonyms.get(0))
@@ -148,7 +157,7 @@ public class PseudonymisationService {
   }
 
   private List<String> getPseudonyms(final Patient patient) {
-    return patient.getIdentifier().stream().map(Identifier::getValue).toList();
+    return patient.getIdentifier().stream().map(Identifier::getValue).map(String::trim).toList();
   }
 
   private void removePseudonyms(final Patient patient) {
