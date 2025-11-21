@@ -2,8 +2,13 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.2.3
+- error id in operation-outcome moved from location to diagnostics (FEATURE_FLAG_MOVE_ERROR_ID_TO_DIAGNOSTICS)
+- accepts also fhir specific content types like "application/fhir+json"
+- Sentinel related data is removed from the bundle
+
 ## Release 1.2.2
-- Errors thrown by surveillance pseudonmy service will lead to a 422 status code response
+- Errors thrown by surveillance pseudonym service will lead to a 422 status code response
 
 ## Release 1.2.1
 - Add default feature flag FEATURE_FLAG_ARS_VALIDATION_ENABLED to values.yaml

@@ -32,6 +32,7 @@ import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentS
 import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
 import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
+import de.gematik.demis.ars.service.service.sentinel.SentinelService;
 import de.gematik.demis.ars.service.service.validation.NotificationValidationService;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.List;
@@ -58,6 +59,7 @@ public class NotificationService {
       "https://demis.rki.de/fhir/ars/StructureDefinition/ParametersOutput";
   private final NotificationValidationService validationService;
   private final PseudonymisationService pseudonymisationService;
+  private final SentinelService sentinelService;
   private final FhirBundleOperator fhirBundleOperator;
   private final ContextEnrichmentService contextEnrichmentService;
   private final FssService fssService;
@@ -67,6 +69,7 @@ public class NotificationService {
       OperationOutcome validationOutcome = validationService.validateFhir(content, messageType);
       Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, messageType);
       pseudonymisationService.replacePatientIdentifier(bundle);
+      sentinelService.removeSentinelData(bundle);
       String notificationId = UUID.randomUUID().toString();
       contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
       fhirBundleOperator.enrichBundle(bundle, notificationId);

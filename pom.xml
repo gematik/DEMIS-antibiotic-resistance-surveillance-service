@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>antibiotic-resistance-surveillance-service</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>1.2.3-SNAPSHOT</version>
     <name>Antibiotic-Resistance-Surveillance-Service</name>
     <packaging>jar</packaging>
     <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
