@@ -30,6 +30,9 @@ package de.gematik.demis.ars.service.api;
  * #L%
  */
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,8 +74,22 @@ public interface NotificationsApi {
   @RequestMapping(
       method = RequestMethod.POST,
       value = "${ars.context-path}$process-notification",
-      produces = {"application/json", "application/xml"},
-      consumes = {"application/json", "application/xml"})
+      consumes = {
+        APPLICATION_JSON_VALUE,
+        "application/json+fhir",
+        "application/fhir+json",
+        APPLICATION_XML_VALUE,
+        "application/xml+fhir",
+        "application/fhir+xml",
+      },
+      produces = {
+        APPLICATION_JSON_VALUE,
+        "application/json+fhir",
+        "application/fhir+json",
+        APPLICATION_XML_VALUE,
+        "application/xml+fhir",
+        "application/fhir+xml",
+      })
   ResponseEntity<Object> fhirProcessNotificationPost(
       @NotNull
           @Parameter(

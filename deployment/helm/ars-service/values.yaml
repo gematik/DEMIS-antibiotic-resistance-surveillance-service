@@ -67,6 +67,7 @@ customEnvVars:
   FEATURE_FLAG_ARS_VALIDATION_ENABLED: "false"
   FEATURE_FLAG_NEW_API_ENDPOINTS: "false"
   FEATURE_FLAG_SURVEILLANCE_PSEUDONYM_SERVICE_ENABLED: "false"
+  FEATURE_FLAG_MOVE_ERROR_ID_TO_DIAGNOSTICS: "false"
 
 # Pod Security Context - applies to all containers in a Pod
 podSecurityContext: 

@@ -60,6 +60,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import de.gematik.demis.ars.service.exception.ArsServiceException;
+import de.gematik.demis.ars.service.exception.ErrorCode;
+import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.ars.service.service.fss.FhirStorageServiceClient;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymResponse;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
@@ -67,10 +72,12 @@ import de.gematik.demis.ars.service.service.pseudonymisation.SurveillancePseudon
 import de.gematik.demis.ars.service.service.validation.ValidationServiceClient;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.service.base.error.ServiceCallException;
+import de.gematik.demis.service.base.error.rest.ErrorFieldProvider;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import net.minidev.json.JSONArray;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -82,6 +89,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,13 +110,42 @@ class NotificationControllerIT {
       "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
   private static final TestUtils testUtil = new TestUtils();
   private static final String ERROR_MESSAGE_DUPLICATE_PSEUDONYMS = "Pseudonyms must be different";
+  private static final String ERROR_ID = "fab6005e-5686-4b7b-b6ee-98b0e98a9d42";
+
+  private IParser determineParser(final String acceptType) {
+    FhirContext ctx = FhirContext.forR4();
+    if (acceptType.equals(APPLICATION_XML_VALUE)) {
+      return ctx.newXmlParser();
+    } else {
+      return ctx.newJsonParser();
+    }
+  }
+
+  private void assertResponse(
+      final String responseBody,
+      final String acceptType,
+      final OperationOutcomeIssueComponent expectedIssue) {
+
+    IParser parser = determineParser(acceptType);
+    OperationOutcome actualOperationOutcome = (OperationOutcome) parser.parseResource(responseBody);
+    OperationOutcomeIssueComponent actualIssue = actualOperationOutcome.getIssueFirstRep();
+    assertThat(actualIssue)
+        .usingRecursiveComparison()
+        //          .ignoringFields("location")
+        .isEqualTo(expectedIssue);
+    assertThat(actualOperationOutcome.getMeta().getProfile())
+        .singleElement()
+        .extracting(CanonicalType::asStringValue)
+        .isEqualTo("https://demis.rki.de/fhir/StructureDefinition/ProcessNotificationResponse");
+  }
 
   @Nested
   @SpringBootTest(
       properties = {
         "feature.flag.ars_validation_enabled=true",
         "feature.flag.new_api_endpoints=false",
-        "feature.flag.surveillance_pseudonym_service_enabled=true"
+        "feature.flag.surveillance_pseudonym_service_enabled=true",
+        "feature.flag.move-error-id-to-diagnostics=true",
       })
   @AutoConfigureMockMvc
   class NotificationController_DEFAULT {
@@ -120,6 +157,9 @@ class NotificationControllerIT {
     @MockitoBean private ValidationServiceClient validationClient;
     @MockitoBean private FhirStorageServiceClient fssClient;
     @MockitoBean private SurveillancePseudonymServiceClient pseudonymClient;
+
+    @MockitoBean(answers = Answers.CALLS_REAL_METHODS)
+    private ErrorFieldProvider errorFieldProvider;
 
     private static Stream<Arguments> shouldAcceptXmlAndJsonContentType() {
       return Stream.of(
@@ -300,6 +340,7 @@ class NotificationControllerIT {
     void shouldReturn422OnIdenticalPseudonyms(String acceptType) {
       when(validationClient.validateJsonBundle(any(), anyString()))
           .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      mockErrorUuid();
 
       MvcResult mvcResult =
           mockMvc
@@ -320,37 +361,66 @@ class NotificationControllerIT {
           .setCode(OperationOutcome.IssueType.PROCESSING)
           .setDetails(
               new CodeableConcept().setCoding(List.of(new Coding().setCode("INVALID_PSEUDONYMS"))))
-          .setDiagnostics(ERROR_MESSAGE_DUPLICATE_PSEUDONYMS);
+          .setDiagnostics(ERROR_MESSAGE_DUPLICATE_PSEUDONYMS + " (" + ERROR_ID + ")");
 
       assertResponse(mvcResult.getResponse().getContentAsString(), acceptType, expectedIssue);
     }
 
-    private void assertResponse(
-        final String responseBody,
-        final String acceptType,
-        final OperationOutcomeIssueComponent expectedIssue) {
+    @Test
+    void shouldRemoveSentinelDataBeforeSendingToFss() throws Exception {
+      ArgumentCaptor<String> bundleCaptor = ArgumentCaptor.forClass(String.class);
+      String sentinelNotification =
+          testUtil.readFileToString(TestUtils.ARS_NOTIFICATION_SENTINEL_JSON);
 
-      IParser parser = determineParser(acceptType);
-      OperationOutcome actualOperationOutcome =
-          (OperationOutcome) parser.parseResource(responseBody);
-      OperationOutcomeIssueComponent actualIssue = actualOperationOutcome.getIssueFirstRep();
-      assertThat(actualIssue)
-          .usingRecursiveComparison()
-          .ignoringFields("location")
-          .isEqualTo(expectedIssue);
-      assertThat(actualOperationOutcome.getMeta().getProfile())
-          .singleElement()
-          .extracting(CanonicalType::asStringValue)
-          .isEqualTo("https://demis.rki.de/fhir/StructureDefinition/ProcessNotificationResponse");
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      mockPseudoServiceOkay();
+      when(fssClient.sendNotification(bundleCaptor.capture()))
+          .thenReturn(ResponseEntity.ok().build());
+
+      mockMvc
+          .perform(
+              post(contextPath + NOTIFICATION_URL)
+                  .header("Authorization", TEST_TOKEN)
+                  .contentType(APPLICATION_JSON_VALUE)
+                  .accept(APPLICATION_JSON_VALUE)
+                  .content(sentinelNotification))
+          .andExpect(status().isOk());
+
+      String capturedBundle = bundleCaptor.getValue();
+      assertSentinelDataIsRemoved(capturedBundle);
     }
 
-    private IParser determineParser(final String acceptType) {
-      FhirContext ctx = FhirContext.forR4();
-      if (acceptType.equals(APPLICATION_XML_VALUE)) {
-        return ctx.newXmlParser();
-      } else {
-        return ctx.newJsonParser();
-      }
+    private void assertSentinelDataIsRemoved(String capturedBundle) {
+      DocumentContext jsonContext = JsonPath.parse(capturedBundle);
+
+      assertThat(
+              (JSONArray)
+                  jsonContext.read(
+                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'Coverage')]"))
+          .as("Coverage resources is removed")
+          .isEmpty();
+
+      assertThat(
+              (JSONArray)
+                  jsonContext.read(
+                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'Patient')].resource.address"))
+          .as("Patient address is removed")
+          .isEmpty();
+
+      assertThat(
+              (JSONArray)
+                  jsonContext.read(
+                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'ServiceRequest')].resource.insurance"))
+          .as("ServiceRequest insurance is removed")
+          .isEmpty();
+
+      assertThat(
+              (JSONArray)
+                  jsonContext.read(
+                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'ServiceRequest')].resource.reasonCode"))
+          .as("ServiceRequest reasonCodes are removed")
+          .isEmpty();
     }
 
     @Test
@@ -360,8 +430,8 @@ class NotificationControllerIT {
       ServiceCallException serviceCallException =
           new ServiceCallException(
               "pseudo-service-has-an-internal-server-error", "PSEUDO", 500, null);
-
       doThrow(serviceCallException).when(pseudonymClient).createPseudonym(any());
+      mockErrorUuid();
 
       MvcResult mvcResult =
           mockMvc
@@ -378,7 +448,8 @@ class NotificationControllerIT {
       expectedIssue
           .setSeverity(OperationOutcome.IssueSeverity.ERROR)
           .setCode(OperationOutcome.IssueType.EXCEPTION)
-          .setDetails(new CodeableConcept().setCoding(List.of(new Coding().setCode("PSEUDO"))));
+          .setDetails(new CodeableConcept().setCoding(List.of(new Coding().setCode("PSEUDO"))))
+          .setDiagnostics("null (" + ERROR_ID + ")");
 
       assertResponse(
           mvcResult.getResponse().getContentAsString(), APPLICATION_JSON_VALUE, expectedIssue);
@@ -389,6 +460,10 @@ class NotificationControllerIT {
           new PseudonymResponse(
               "http://my.test/Pseudo", "urn:uuid:10101010-1010-1010-1010-101010101010");
       when(pseudonymClient.createPseudonym(any())).thenReturn(response);
+    }
+
+    private void mockErrorUuid() {
+      when(errorFieldProvider.generateId()).thenReturn(ERROR_ID);
     }
   }
 
@@ -437,6 +512,65 @@ class NotificationControllerIT {
       assertThat(headerCaptor.getValue())
           .extractingByKey(HEADER_FHIR_API_VERSION)
           .isEqualTo(List.of(apiVersion));
+    }
+  }
+
+  @Nested
+  @SpringBootTest(
+      properties = {
+        "feature.flag.move-error-id-to-diagnostics=false",
+      })
+  @AutoConfigureMockMvc
+  class NotificationController_FEATURE_FLAG_MOVE_ERROR_ID_DISABLED {
+
+    @Value("${ars.context-path}")
+    private String contextPath;
+
+    @Autowired private MockMvc mockMvc;
+
+    @MockitoBean private NotificationService notificationService;
+
+    @MockitoBean(answers = Answers.CALLS_REAL_METHODS)
+    private ErrorFieldProvider errorFieldProvider;
+
+    @Test
+    @SneakyThrows
+    void shouldSetHeaderCorrectlyForVsWithFeatureFlagNewRoutsTrue() {
+      final String errorMessage = "Just a test";
+      when(notificationService.process(anyString(), any(), anyString()))
+          .thenThrow(new ArsServiceException(ErrorCode.FHIR_VALIDATION_ERROR, errorMessage));
+      mockErrorUuid();
+
+      MvcResult mvcResult =
+          mockMvc
+              .perform(
+                  post(contextPath + NOTIFICATION_URL)
+                      .header("Authorization", TEST_TOKEN)
+                      .contentType(APPLICATION_JSON_VALUE)
+                      .accept(APPLICATION_JSON_VALUE)
+                      .content(
+                          testUtil.readFileToString(
+                              ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON)))
+              .andExpect(status().isUnprocessableEntity())
+              .andReturn();
+
+      final var expectedIssue = new OperationOutcomeIssueComponent();
+      expectedIssue
+          .setSeverity(OperationOutcome.IssueSeverity.ERROR)
+          .setCode(OperationOutcome.IssueType.PROCESSING)
+          .setDetails(
+              new CodeableConcept()
+                  .setCoding(
+                      List.of(new Coding().setCode(ErrorCode.FHIR_VALIDATION_ERROR.getCode()))))
+          .setDiagnostics(errorMessage)
+          .addLocation(ERROR_ID);
+
+      assertResponse(
+          mvcResult.getResponse().getContentAsString(), APPLICATION_JSON_VALUE, expectedIssue);
+    }
+
+    private void mockErrorUuid() {
+      when(errorFieldProvider.generateId()).thenReturn(ERROR_ID);
     }
   }
 }
