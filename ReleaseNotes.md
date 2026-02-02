@@ -1,6 +1,9 @@
-<img align="right" width="250" height="47" src="media/Gematik_Logo_Flag.png"/> <br/> 
+<div style="text-align:right"><img src="https://raw.githubusercontent.com/gematik/gematik.github.io/master/Gematik_Logo_Flag_With_Background.png" width="250" height="47" alt="gematik GmbH Logo"/> <br/> </div> <br/> 
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
+## Release 1.2.4
+- Adjust requested resources 
+- updated spring-parent to 2.14.20
 
 ## Release 1.2.3
 - error id in operation-outcome moved from location to diagnostics (FEATURE_FLAG_MOVE_ERROR_ID_TO_DIAGNOSTICS)
