@@ -6,12 +6,12 @@
     <parent>
         <groupId>de.gematik.demis</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>2.13.5</version>
+        <version>2.14.20</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <artifactId>antibiotic-resistance-surveillance-service</artifactId>
-    <version>1.2.3-SNAPSHOT</version>
+    <version>1.2.4-SNAPSHOT</version>
     <name>Antibiotic-Resistance-Surveillance-Service</name>
     <packaging>jar</packaging>
     <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
@@ -28,16 +28,6 @@
         <java.version>21</java.version>
         <openapitools-jackson-databind-nullable-version>0.2.6</openapitools-jackson-databind-nullable-version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>commons-fileupload</groupId>
-                <artifactId>commons-fileupload</artifactId>
-                <version>1.6.0</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -78,12 +68,6 @@
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
             <version>${openapitools-jackson-databind-nullable-version}</version>
-        </dependency>
-        <!-- to be removed once the dependency is updated in spring parent -->
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.6.0</version>
         </dependency>
     </dependencies>
 </project>
