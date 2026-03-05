@@ -27,8 +27,6 @@ package de.gematik.demis.ars.service.service;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.utils.Constants.NOTIFICATION_BUNDLE_IDENTIFIER_SYSTEM;
-
 import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentService;
 import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
 import de.gematik.demis.ars.service.service.fss.FssService;
@@ -44,70 +42,36 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Device;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.springframework.stereotype.Service;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class NotificationService {
-
-  public static final String BUNDLE_IDENTIFIER_PARAMETER_NAME = "bundleIdentifier";
-  public static final String SPECIMEN_IDENTIFIER_PARAMETER_NAME = "specimenIdentifier";
-  public static final String OPERATION_OUTCOME_PARAMETER_NAME = "operationOutcome";
-  public static final String OPERATION_OUTCOME_PARAMETER_PROFILE =
-      "https://demis.rki.de/fhir/ars/StructureDefinition/ParametersOutput";
   private final NotificationValidationService validationService;
+  private final FhirBundleOperator fhirBundleOperator;
   private final PseudonymisationService pseudonymisationService;
   private final SentinelService sentinelService;
-  private final FhirBundleOperator fhirBundleOperator;
   private final ContextEnrichmentService contextEnrichmentService;
   private final FssService fssService;
 
-  public Parameters process(String content, MessageType messageType, String authorization) {
-    try {
-      OperationOutcome validationOutcome = validationService.validateFhir(content, messageType);
-      Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, messageType);
-      pseudonymisationService.replacePatientIdentifier(bundle);
-      sentinelService.removeSentinelData(bundle);
-      String notificationId = UUID.randomUUID().toString();
-      contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
-      fhirBundleOperator.enrichBundle(bundle, notificationId);
-      List<Identifier> specimenIdentifier =
-          fhirBundleOperator.getSpecimenAccessionIdentifier(bundle);
-      fssService.sendNotificationToFss(bundle);
+  public NotificationProcessingResult process(
+      String content, MessageType messageType, String authorization, NotificationContext context) {
+    OperationOutcome validationOutcome =
+        validationService.validateFhir(content, messageType, context);
+    Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, messageType);
+    pseudonymisationService.replacePatientIdentifier(bundle);
+    sentinelService.removeSentinelData(bundle);
+    String notificationId = UUID.randomUUID().toString();
+    contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
+    fhirBundleOperator.enrichBundle(bundle, notificationId);
+    List<Identifier> specimenIdentifier = fhirBundleOperator.getSpecimenAccessionIdentifier(bundle);
+    fssService.sendNotificationToFss(bundle);
 
-      logInfos(notificationId, bundle);
+    logInfos(notificationId, bundle);
 
-      return buildResponse(validationOutcome, notificationId, specimenIdentifier);
-    } catch (Exception e) {
-      log.info(
-          "Notification: bundleId=not available, sender=<placeholder>, primarySystem=not available, type=ARS");
-      throw e;
-    }
-  }
-
-  private Parameters buildResponse(
-      OperationOutcome validationOutcome,
-      String notificationId,
-      List<Identifier> specimenIdentifier) {
-    Parameters response = new Parameters();
-    response.getMeta().addProfile(OPERATION_OUTCOME_PARAMETER_PROFILE);
-    response.addParameter(
-        BUNDLE_IDENTIFIER_PARAMETER_NAME,
-        new Identifier().setValue(notificationId).setSystem(NOTIFICATION_BUNDLE_IDENTIFIER_SYSTEM));
-    specimenIdentifier.forEach(
-        identifier -> response.addParameter(SPECIMEN_IDENTIFIER_PARAMETER_NAME, identifier));
-    response.addParameter(getOperationOutput(validationOutcome));
-    return response;
-  }
-
-  private ParametersParameterComponent getOperationOutput(OperationOutcome validationOutcome) {
-    ParametersParameterComponent operationOutcome = new ParametersParameterComponent();
-    operationOutcome.setName(OPERATION_OUTCOME_PARAMETER_NAME);
-    operationOutcome.setResource(validationOutcome);
-    return operationOutcome;
+    return new NotificationProcessingResult(
+        notificationId, bundle, validationOutcome, specimenIdentifier);
   }
 
   private void logInfos(final String notificationId, final Bundle bundle) {

@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service;
+package de.gematik.demis.ars.service.batchprocessing.messages.constants;
 
 /*-
  * #%L
@@ -27,27 +27,13 @@ package de.gematik.demis.ars.service;
  * #L%
  */
 
-import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import lombok.NoArgsConstructor;
 
-/** Application Entrypoint. */
-@EnableFeignClients
-@SpringBootApplication
-@EnableDefaultApiSpecConfig
-@Slf4j
-public class ArsServiceApplication {
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+public class MessageHeaderConstants {
 
-  public static void main(final String[] args) {
-    final SpringApplication app = new SpringApplication(ArsServiceApplication.class);
-    boolean ffBulkEnabled = Boolean.parseBoolean(System.getenv("FEATURE_FLAG_ARS_BULK_ENABLED"));
-    if (!ffBulkEnabled) {
-      log.info(
-          "FEATURE_FLAG_ARS_BULK_ENABLED is not enabled. Exclude Autoconfiguration of database");
-      app.setAdditionalProfiles("no-db");
-    }
-    app.run(args);
-  }
+  public static final String HEADER_BATCH_ID = "x-batch-id";
+  public static final String HEADER_DOCUMENT_ID = "x-document-id";
+  public static final String HEADER_AUTHORIZATION = "x-authorization";
+  public static final String HEADER_TYPE = "x-type";
 }

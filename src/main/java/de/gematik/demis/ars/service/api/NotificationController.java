@@ -27,11 +27,14 @@ package de.gematik.demis.ars.service.api;
  * #L%
  */
 
+import de.gematik.demis.ars.service.service.NotificationContext;
+import de.gematik.demis.ars.service.service.NotificationProcessingResult;
 import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.fhir.response.FhirResponseConverter;
 import lombok.AllArgsConstructor;
 import org.hl7.fhir.r4.model.Parameters;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
@@ -40,17 +43,24 @@ import org.springframework.web.context.request.WebRequest;
 @AllArgsConstructor
 public class NotificationController implements NotificationsApi {
 
-  public final NotificationService service;
   public final FhirResponseConverter fhirConverter;
+  public final NotificationService service;
+  public final FhirParametersResponseMapper fhirParametersResponseMapper;
 
   @Override
   public ResponseEntity<Object> fhirProcessNotificationPost(
       final String authorization,
       final String contentType,
       final String content,
+      final HttpHeaders headers,
       final WebRequest webRequest) {
     final MessageType messageType = MessageType.getMessageType(contentType);
-    final Parameters savedNotification = service.process(content, messageType, authorization);
+    final NotificationContext context = NotificationContext.fromHttpHeaders(headers);
+
+    NotificationProcessingResult processingResult =
+        service.process(content, messageType, authorization, context);
+    final Parameters savedNotification =
+        fhirParametersResponseMapper.mapToParameters(processingResult);
     return fhirConverter.buildResponse(ResponseEntity.ok(), savedNotification, webRequest);
   }
 }

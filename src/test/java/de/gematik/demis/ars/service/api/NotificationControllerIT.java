@@ -27,9 +27,9 @@ package de.gematik.demis.ars.service.api;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.service.NotificationService.BUNDLE_IDENTIFIER_PARAMETER_NAME;
-import static de.gematik.demis.ars.service.service.NotificationService.OPERATION_OUTCOME_PARAMETER_NAME;
-import static de.gematik.demis.ars.service.service.NotificationService.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
+import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.BUNDLE_IDENTIFIER_PARAMETER_NAME;
+import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.OPERATION_OUTCOME_PARAMETER_NAME;
+import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
 import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
 import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON;
@@ -68,7 +68,6 @@ import de.gematik.demis.ars.service.exception.ErrorCode;
 import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.ars.service.service.fss.FhirStorageServiceClient;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymResponse;
-import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.pseudonymisation.SurveillancePseudonymServiceClient;
 import de.gematik.demis.ars.service.service.validation.ValidationServiceClient;
 import de.gematik.demis.ars.service.utils.TestUtils;
@@ -99,8 +98,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -141,12 +140,11 @@ class NotificationControllerIT {
   }
 
   @Nested
+  @ActiveProfiles("without-database")
   @SpringBootTest(
       properties = {
-        "feature.flag.ars_validation_enabled=true",
-        "feature.flag.new_api_endpoints=false",
         "feature.flag.surveillance_pseudonym_service_enabled=true",
-        "feature.flag.move-error-id-to-diagnostics=true",
+        "feature.flag.move-error-id-to-diagnostics=true"
       })
   @AutoConfigureMockMvc
   class NotificationController_DEFAULT {
@@ -158,6 +156,7 @@ class NotificationControllerIT {
     @MockitoBean private ValidationServiceClient validationClient;
     @MockitoBean private FhirStorageServiceClient fssClient;
     @MockitoBean private SurveillancePseudonymServiceClient pseudonymClient;
+    @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
 
     @MockitoBean(answers = Answers.CALLS_REAL_METHODS)
     private ErrorFieldProvider errorFieldProvider;
@@ -466,26 +465,6 @@ class NotificationControllerIT {
     private void mockErrorUuid() {
       when(errorFieldProvider.generateId()).thenReturn(ERROR_ID);
     }
-  }
-
-  @Nested
-  @SpringBootTest(
-      properties = {
-        "feature.flag.ars_validation_enabled=true",
-        "feature.flag.new_api_endpoints=true",
-      })
-  @AutoConfigureMockMvc
-  class NotificationController_FEATURE_FLAG_NEW_API_ENDPOINTS {
-
-    @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
-
-    @Value("${ars.context-path}")
-    private String contextPath;
-
-    @Autowired private MockMvc mockMvc;
-    @MockitoBean private ValidationServiceClient validationClient;
-    @MockitoBean private FhirStorageServiceClient fssClient;
-    @MockitoSpyBean private PseudonymisationService pseudonymisationService;
 
     @Test
     @SneakyThrows
@@ -517,6 +496,7 @@ class NotificationControllerIT {
   }
 
   @Nested
+  @ActiveProfiles("without-database")
   @SpringBootTest(
       properties = {
         "feature.flag.move-error-id-to-diagnostics=false",
@@ -538,7 +518,7 @@ class NotificationControllerIT {
     @SneakyThrows
     void shouldSetHeaderCorrectlyForVsWithFeatureFlagNewRoutsTrue() {
       final String errorMessage = "Just a test";
-      when(notificationService.process(anyString(), any(), anyString()))
+      when(notificationService.process(anyString(), any(), anyString(), any()))
           .thenThrow(new ArsServiceException(ErrorCode.FHIR_VALIDATION_ERROR, errorMessage));
       mockErrorUuid();
 

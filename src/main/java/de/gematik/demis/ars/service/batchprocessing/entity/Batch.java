@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service;
+package de.gematik.demis.ars.service.batchprocessing.entity;
 
 /*-
  * #%L
@@ -27,27 +27,27 @@ package de.gematik.demis.ars.service;
  * #L%
  */
 
-import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-/** Application Entrypoint. */
-@EnableFeignClients
-@SpringBootApplication
-@EnableDefaultApiSpecConfig
-@Slf4j
-public class ArsServiceApplication {
+@Entity
+@Table(name = "batch")
+@Setter
+@Getter
+@ToString
+public class Batch {
+  @Id @Column private UUID batchId;
 
-  public static void main(final String[] args) {
-    final SpringApplication app = new SpringApplication(ArsServiceApplication.class);
-    boolean ffBulkEnabled = Boolean.parseBoolean(System.getenv("FEATURE_FLAG_ARS_BULK_ENABLED"));
-    if (!ffBulkEnabled) {
-      log.info(
-          "FEATURE_FLAG_ARS_BULK_ENABLED is not enabled. Exclude Autoconfiguration of database");
-      app.setAdditionalProfiles("no-db");
-    }
-    app.run(args);
-  }
+  @Column(insertable = false, updatable = false, nullable = false)
+  private Instant createdAt;
+
+  @Column(updatable = false, nullable = false)
+  private int numberOfNotifications;
 }
