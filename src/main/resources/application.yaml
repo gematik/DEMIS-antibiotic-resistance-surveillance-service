@@ -1,14 +1,51 @@
 spring:
   config:
     import: classpath:/base-config-application.yaml
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq.dmz.svc.cluster.local}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:rabbit_user}
+    password: ${SPRING_RABBITMQ_PASSWORD:rabbit_password}
+    listener:
+      simple:
+        concurrency: ${SPRING_RABBITMQ_CONCURENT_LISTENERS_COUNT:2}
+
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:false}
+    change-log: classpath:db/changelog.yaml
+    user: ${LIQUIBASE_DB_USER}
+    parameters:
+      db-user-service: ${DB_USER}
+    url: ${DB_URL}
+
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+
 info:
   app:
     name: '@project.name@'
     version: '@project.version@'
 
 ars:
-  context-path: "${API_ENTRYPOINT:/fhir/}"# The API_ENTRYPOINT for the FHIR API is set to / if FEATURE_FLAG_NEW_API_ENDPOINTS=true or removed
+  context-path: "${API_ENTRYPOINT:/}"
   outcome-issue-threshold: warning
+  batch-processing:
+    enabled: ${FEATURE_FLAG_ARS_BULK_ENABLED:false}
+    control-queue: bulk.control
+    secure-queue: bulk.secure
   validation:
     url: ${DEMIS_NETWORK_VALIDATION_SERVICE_ADDRESS:http://validation-service.demis.svc.cluster.local}
   ces:
@@ -29,6 +66,9 @@ base:
 
 feature:
   flag:
-    ars_validation_enabled: false
-    new_api_endpoints: false
     surveillance_pseudonym_service_enabled: false
+
+management:
+  health:
+    rabbit:
+      enabled: ${FEATURE_FLAG_ARS_BULK_ENABLED:false}

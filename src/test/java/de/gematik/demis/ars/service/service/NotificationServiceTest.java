@@ -27,10 +27,6 @@ package de.gematik.demis.ars.service.service;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.service.NotificationService.BUNDLE_IDENTIFIER_PARAMETER_NAME;
-import static de.gematik.demis.ars.service.service.NotificationService.OPERATION_OUTCOME_PARAMETER_NAME;
-import static de.gematik.demis.ars.service.service.NotificationService.OPERATION_OUTCOME_PARAMETER_PROFILE;
-import static de.gematik.demis.ars.service.service.NotificationService.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -50,11 +46,10 @@ import de.gematik.demis.ars.service.service.validation.NotificationValidationSer
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.List;
+import java.util.Map;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,19 +63,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class NotificationServiceTest {
 
   private final TestUtils testUtil = new TestUtils();
-  @Mock NotificationValidationService validationService;
-  @Mock FhirBundleOperator fhirBundleOperator;
-  @Mock ContextEnrichmentService contextEnrichmentService;
-  @Mock PseudonymisationService pseudonymisationService;
-  @Mock SentinelService sentinelService;
-  @Mock FssService fssService;
+  @Mock private NotificationValidationService validationService;
+  @Mock private FhirBundleOperator fhirBundleOperator;
+  @Mock private ContextEnrichmentService contextEnrichmentService;
+  @Mock private PseudonymisationService pseudonymisationService;
+  @Mock private SentinelService sentinelService;
+  @Mock private FssService fssService;
   @Captor private ArgumentCaptor<String> uuidCaptor;
   @Captor private ArgumentCaptor<Bundle> bundleCaptor;
   @InjectMocks private NotificationService underTest;
+  NotificationContext context = NotificationContext.fromAmqpHeaders(Map.of());
 
   @Test
   void shouldAddOperationOutcomeCorrectly() {
-    when(validationService.validateFhir(any(), any()))
+    when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
     when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
@@ -88,15 +84,11 @@ class NotificationServiceTest {
     doNothing().when(pseudonymisationService).replacePatientIdentifier(any());
     doNothing().when(sentinelService).removeSentinelData(any());
     doNothing().when(fssService).sendNotificationToFss(any());
-    Parameters output = underTest.process("test", MessageType.JSON, "");
+
+    NotificationProcessingResult output = underTest.process("test", MessageType.JSON, "", context);
+
     assertNotNull(output);
-    OperationOutcome operationOutcome =
-        (OperationOutcome)
-            output.getParameter().stream()
-                .filter(p -> p.getName().equals(OPERATION_OUTCOME_PARAMETER_NAME))
-                .findFirst()
-                .orElseThrow()
-                .getResource();
+    OperationOutcome operationOutcome = output.validationOutcome();
     assertEquals(
         OperationOutcome.IssueSeverity.INFORMATION,
         operationOutcome.getIssue().getFirst().getSeverity());
@@ -108,26 +100,22 @@ class NotificationServiceTest {
 
   @Test
   void shouldAddNewNotificationIdCorrectly() {
-    when(validationService.validateFhir(any(), any()))
+    when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
     when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
     doNothing().when(fhirBundleOperator).enrichBundle(bundleCaptor.capture(), uuidCaptor.capture());
     doNothing().when(sentinelService).removeSentinelData(any());
-    Parameters output = underTest.process("test", MessageType.JSON, "");
+
+    NotificationProcessingResult output = underTest.process("test", MessageType.JSON, "", context);
+
     assertNotNull(output);
-    ParametersParameterComponent notificationParam =
-        output.getParameter().stream()
-            .filter(p -> p.getName().equals(BUNDLE_IDENTIFIER_PARAMETER_NAME))
-            .findFirst()
-            .orElseThrow();
-    assertThat(((Identifier) notificationParam.getValue()).getValue())
-        .isEqualTo(uuidCaptor.getValue());
+    assertThat(output.notificationId()).isEqualTo(uuidCaptor.getValue());
   }
 
   @Test
   void shouldAddSpecimenIdCorrectly() {
-    when(validationService.validateFhir(any(), any()))
+    when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
     when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
@@ -135,20 +123,17 @@ class NotificationServiceTest {
         .thenReturn(List.of(new Identifier().setValue("specimenId")));
     doNothing().when(sentinelService).removeSentinelData(any());
 
-    Parameters output = underTest.process("test", MessageType.JSON, "");
+    NotificationProcessingResult output = underTest.process("test", MessageType.JSON, "", context);
+
     assertNotNull(output);
-    List<ParametersParameterComponent> specimenParams =
-        output.getParameter().stream()
-            .filter(p -> p.getName().equals(SPECIMEN_IDENTIFIER_PARAMETER_NAME))
-            .toList();
-    assertThat(specimenParams).hasSize(1);
-    assertThat(specimenParams.stream().map(p -> ((Identifier) p.getValue()).getValue()))
+    assertThat(output.specimenIdentifiers()).hasSize(1);
+    assertThat(output.specimenIdentifiers().stream().map(Identifier::getValue))
         .containsExactly("specimenId");
   }
 
   @Test
   void shouldAddSpecimenIdsCorrectly() {
-    when(validationService.validateFhir(any(), any()))
+    when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
     when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
@@ -158,45 +143,23 @@ class NotificationServiceTest {
                 new Identifier().setValue("specimenId"), new Identifier().setValue("specimenId2")));
     doNothing().when(sentinelService).removeSentinelData(any());
 
-    Parameters output = underTest.process("test", MessageType.JSON, "");
+    NotificationProcessingResult output = underTest.process("test", MessageType.JSON, "", context);
+
     assertNotNull(output);
-    List<ParametersParameterComponent> specimenParams =
-        output.getParameter().stream()
-            .filter(p -> p.getName().equals(SPECIMEN_IDENTIFIER_PARAMETER_NAME))
-            .toList();
-    assertThat(specimenParams).hasSize(2);
-    assertThat(specimenParams.stream().map(p -> ((Identifier) p.getValue()).getValue()))
+    assertThat(output.specimenIdentifiers()).hasSize(2);
+    assertThat(output.specimenIdentifiers().stream().map(Identifier::getValue))
         .containsExactly("specimenId", "specimenId2");
   }
 
   @Test
-  void shouldAddMetaProfileCorrectly() {
-    when(validationService.validateFhir(any(), any()))
-        .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
-    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
-        .thenReturn(testUtil.getDefaultBundle());
-    when(fhirBundleOperator.getSpecimenAccessionIdentifier(any()))
-        .thenReturn(List.of(new Identifier().setValue("specimenId")));
-    doNothing().when(sentinelService).removeSentinelData(any());
-
-    Parameters output = underTest.process("test", MessageType.JSON, "");
-
-    assertNotNull(output.getMeta());
-    assertNotNull(output.getMeta().getProfile());
-    assertEquals(
-        OPERATION_OUTCOME_PARAMETER_PROFILE, output.getMeta().getProfile().getFirst().getValue());
-  }
-
-  @Test
   void shouldCallSentinelServiceBeforeFssService() {
-    when(validationService.validateFhir(any(), any()))
+    when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
     when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
-
     InOrder inOrder = inOrder(fssService, sentinelService);
 
-    underTest.process("test", MessageType.JSON, "");
+    underTest.process("test", MessageType.JSON, "", context);
 
     inOrder.verify(sentinelService).removeSentinelData(any(Bundle.class));
     inOrder.verify(fssService).sendNotificationToFss(any(Bundle.class));

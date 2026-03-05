@@ -1,6 +1,14 @@
 <div style="text-align:right"><img src="https://raw.githubusercontent.com/gematik/gematik.github.io/master/Gematik_Logo_Flag_With_Background.png" width="250" height="47" alt="gematik GmbH Logo"/> <br/> </div> <br/> 
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
+## Release 1.3.0
+- Removed istio helm chart
+- added async processing of bulk uploads from secure messaging queue
+- removed featureflag FEATURE_FLAG_NEW_API_ENDPOINTS
+- removed profile and changed to featureflag
+- removed featureFlag FEATURE_FLAG_ARS_VALIDATION_ENABLED
+- added processing for batch closing from control queue
+
 ## Release 1.2.4
 - Adjust requested resources 
 - updated spring-parent to 2.14.20

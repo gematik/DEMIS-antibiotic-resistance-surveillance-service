@@ -45,7 +45,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("without-database")
 @SpringBootTest(properties = {"ars.pseudo.url=http://localhost:${wiremock.server.port}"})
 @AutoConfigureWireMock(port = 0)
 class SurveillancePseudonymServiceClientIntegrationTest {

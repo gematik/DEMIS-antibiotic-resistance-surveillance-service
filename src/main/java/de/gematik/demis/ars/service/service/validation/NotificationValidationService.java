@@ -34,28 +34,26 @@ import static de.gematik.demis.ars.service.parser.FhirParser.deserializeResource
 import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
 import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
 import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE_OLD;
-import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import com.apicatalog.jsonld.StringUtils;
 import de.gematik.demis.ars.service.exception.ArsValidationException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
+import de.gematik.demis.ars.service.service.NotificationContext;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.error.ServiceCallException;
 import de.gematik.demis.service.base.fhir.outcome.FhirOperationOutcomeService;
 import feign.Response;
 import feign.codec.Decoder;
 import feign.codec.StringDecoder;
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
-import javax.annotation.Nonnull;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -69,23 +67,12 @@ public class NotificationValidationService {
   private final ValidationServiceClient validationServiceClient;
   private final FhirOperationOutcomeService outcomeService;
   private final Decoder decoder = new StringDecoder();
-  private final HttpServletRequest httpServletRequest;
 
-  @Value("${feature.flag.ars_validation_enabled}")
-  @Setter
-  boolean validationEnabled;
-
-  @Value("${feature.flag.new_api_endpoints}")
-  @Setter
-  private boolean isVersionHeaderForwardEnabled;
-
-  public OperationOutcome validateFhir(String content, MessageType messageType) {
-    if (!validationEnabled) {
-      return processPositivOperationOutcome(new OperationOutcome());
-    }
+  public OperationOutcome validateFhir(
+      String content, MessageType messageType, NotificationContext context) {
     HttpStatusCode status;
     String body;
-    try (Response response = getValidationResponse(content, messageType)) {
+    try (Response response = getValidationResponse(content, messageType, context.getHeaders())) {
       status = HttpStatus.valueOf(response.status());
       body = readResponse(response);
     }
@@ -103,7 +90,7 @@ public class NotificationValidationService {
     OperationOutcome operationOutcome =
         deserializeResource(body, APPLICATION_JSON, OperationOutcome.class);
     if (!status.is2xxSuccessful()) {
-      handleValidationError(status, operationOutcome);
+      handleValidationError(operationOutcome);
     }
     log.debug("Fhir Bundle successfully validated.");
     return processPositivOperationOutcome(operationOutcome);
@@ -115,7 +102,7 @@ public class NotificationValidationService {
     return operationOutcome;
   }
 
-  private void handleValidationError(HttpStatusCode status, OperationOutcome operationOutcome) {
+  private void handleValidationError(OperationOutcome operationOutcome) {
     final boolean hasFatalIssue =
         operationOutcome.getIssue().stream()
             .anyMatch(issue -> issue.getSeverity() == IssueSeverity.FATAL);
@@ -123,24 +110,24 @@ public class NotificationValidationService {
     throw new ArsValidationException(errorCode, "Fhir Bundle validation failed.", operationOutcome);
   }
 
-  private List<String> headersFromRequestByName(@Nonnull String headerName) {
-    return ofNullable(httpServletRequest.getHeader(headerName)).map(List::of).orElse(null);
-  }
+  private Response getValidationResponse(
+      String content, MessageType messageType, Map<String, String> headers) {
 
-  private Response getValidationResponse(String content, MessageType messageType) {
+    final HttpHeaders validationRequestHeaders = new HttpHeaders();
 
-    final HttpHeaders headers = new HttpHeaders();
-
-    if (isVersionHeaderForwardEnabled) {
-      headers.computeIfAbsent(HEADER_FHIR_API_VERSION, this::headersFromRequestByName);
-      headers.computeIfAbsent(HEADER_FHIR_PROFILE, this::headersFromRequestByName);
+    String apiVersion = headers.get(HEADER_FHIR_API_VERSION);
+    String profile = headers.get(HEADER_FHIR_PROFILE);
+    if (StringUtils.isNotBlank(apiVersion) && StringUtils.isNotBlank(profile)) {
+      validationRequestHeaders.put(HEADER_FHIR_API_VERSION, List.of(apiVersion));
+      validationRequestHeaders.put(HEADER_FHIR_PROFILE, List.of(profile));
     }
 
-    headers.computeIfAbsent(HEADER_FHIR_PROFILE_OLD, ignored -> List.of("ars-profile-snapshots"));
+    validationRequestHeaders.computeIfAbsent(
+        HEADER_FHIR_PROFILE_OLD, ignored -> List.of("ars-profile-snapshots"));
 
     return messageType == MessageType.JSON
-        ? validationServiceClient.validateJsonBundle(headers, content)
-        : validationServiceClient.validateXmlBundle(headers, content);
+        ? validationServiceClient.validateJsonBundle(validationRequestHeaders, content)
+        : validationServiceClient.validateXmlBundle(validationRequestHeaders, content);
   }
 
   private String readResponse(final Response response) {

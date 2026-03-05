@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service;
+package de.gematik.demis.ars.service.batchprocessing;
 
 /*-
  * #%L
@@ -27,27 +27,26 @@ package de.gematik.demis.ars.service;
  * #L%
  */
 
-import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import java.util.Base64;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
-/** Application Entrypoint. */
-@EnableFeignClients
-@SpringBootApplication
-@EnableDefaultApiSpecConfig
-@Slf4j
-public class ArsServiceApplication {
+@Component
+@RequiredArgsConstructor
+@ConditionalOnProperty("ars.batch-processing.enabled")
+public class DecryptionService {
 
-  public static void main(final String[] args) {
-    final SpringApplication app = new SpringApplication(ArsServiceApplication.class);
-    boolean ffBulkEnabled = Boolean.parseBoolean(System.getenv("FEATURE_FLAG_ARS_BULK_ENABLED"));
-    if (!ffBulkEnabled) {
-      log.info(
-          "FEATURE_FLAG_ARS_BULK_ENABLED is not enabled. Exclude Autoconfiguration of database");
-      app.setAdditionalProfiles("no-db");
-    }
-    app.run(args);
+  /**
+   * Decrypts the Base64-encoded data.
+   *
+   * <p><b>TODO:</b> Replace Base64 decoding with proper encryption/decryption algorithm.
+   *
+   * @param encryptedData the Base64-encoded string to decrypt
+   * @return the decrypted string
+   */
+  public String decryptData(final String encryptedData) {
+    byte[] decodedBytes = Base64.getDecoder().decode(encryptedData);
+    return new String(decodedBytes);
   }
 }

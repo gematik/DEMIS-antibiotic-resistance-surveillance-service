@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service;
+package de.gematik.demis.ars.service.batchprocessing.config;
 
 /*-
  * #%L
@@ -27,27 +27,28 @@ package de.gematik.demis.ars.service;
  * #L%
  */
 
-import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/** Application Entrypoint. */
-@EnableFeignClients
-@SpringBootApplication
-@EnableDefaultApiSpecConfig
-@Slf4j
-public class ArsServiceApplication {
+@Configuration
+public class RabbitConfig {
 
-  public static void main(final String[] args) {
-    final SpringApplication app = new SpringApplication(ArsServiceApplication.class);
-    boolean ffBulkEnabled = Boolean.parseBoolean(System.getenv("FEATURE_FLAG_ARS_BULK_ENABLED"));
-    if (!ffBulkEnabled) {
-      log.info(
-          "FEATURE_FLAG_ARS_BULK_ENABLED is not enabled. Exclude Autoconfiguration of database");
-      app.setAdditionalProfiles("no-db");
-    }
-    app.run(args);
+  @Value("${ars.batch-processing.control-queue}")
+  private String controlQueueName;
+
+  @Value("${ars.batch-processing.secure-queue}")
+  private String secureQueueName;
+
+  @Bean
+  public Queue bulkControlQueue() {
+    return QueueBuilder.durable(controlQueueName).build();
+  }
+
+  @Bean
+  public Queue bulkSecureQueue() {
+    return QueueBuilder.durable(secureQueueName).build();
   }
 }

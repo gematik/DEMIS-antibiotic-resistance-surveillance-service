@@ -28,12 +28,14 @@ package de.gematik.demis.ars.service.api;
  */
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import de.gematik.demis.ars.service.service.NotificationProcessingResult;
 import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.service.base.error.rest.ErrorHandlerConfiguration;
 import de.gematik.demis.service.base.fhir.FhirSupportAutoConfiguration;
@@ -61,6 +63,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 class NotificationControllerTest {
 
   @MockitoBean private NotificationService notificationService;
+  @MockitoBean private FhirParametersResponseMapper fhirParametersResponseMapper;
 
   @Autowired private MockMvc mockMvc;
 
@@ -92,7 +95,9 @@ class NotificationControllerTest {
       throws Exception {
     final String expectedBodyAsJson = "{\"resourceType\":\"Parameters\"}";
     final String expectedBodyAsXml = "<Parameters xmlns=\"http://hl7.org/fhir\"></Parameters>";
-    when(notificationService.process(any(), any(), any())).thenReturn(new Parameters());
+    when(notificationService.process(any(), any(), any(), any()))
+        .thenReturn(mock(NotificationProcessingResult.class));
+    when(fhirParametersResponseMapper.mapToParameters(any())).thenReturn(new Parameters());
     final MockHttpServletRequestBuilder request =
         post(endpointPath)
             .contentType(contentType)
@@ -117,6 +122,7 @@ class NotificationControllerTest {
       strings = {"text/json", "text/json+fhir", "text/xml", "text/xml+fhir", "unknown/xml", ""})
   void unsupportedMediaType(final String contentType) throws Exception {
     verifyNoInteractions(notificationService);
+    verifyNoInteractions(fhirParametersResponseMapper);
     final MockHttpServletRequestBuilder request =
         post(endpointPath)
             .content("is-ignored")

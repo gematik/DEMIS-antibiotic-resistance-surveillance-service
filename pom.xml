@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>antibiotic-resistance-surveillance-service</artifactId>
-    <version>1.2.4-SNAPSHOT</version>
+    <version>1.2.5-SNAPSHOT</version>
     <name>Antibiotic-Resistance-Surveillance-Service</name>
     <packaging>jar</packaging>
     <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
@@ -28,6 +28,17 @@
         <java.version>21</java.version>
         <openapitools-jackson-databind-nullable-version>0.2.6</openapitools-jackson-databind-nullable-version>
     </properties>
+
+    <!-- TODO Hier wieder rausnehmen und in Spring Parent anpassen -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>3.49.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -54,6 +65,29 @@
             <artifactId>hapi-fhir-structures-r4</artifactId>
             <version>${hapi.fhir.version}</version>
         </dependency>
+
+        <!-- RabbitMQ Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- Database -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -64,6 +98,28 @@
             <artifactId>spring-cloud-contract-wiremock</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-rabbitmq</artifactId>
+            <version>2.0.2</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>

@@ -45,6 +45,22 @@ spec:
         - name: jfr-volume
           emptyDir: { }
         {{- end }}
+        {{- if .Values.secret.dbPwdUser }}
+        - name: db-user-secret-volume
+          secret:
+            secretName: {{ .Values.secret.dbPwdUser.name }}
+            items:
+              - key: {{ .Values.secret.dbPwdUser.key }}
+                path: {{ .Values.secret.dbPwdUser.propPath }}
+        {{- end }}
+        {{- if .Values.secret.dbPwdDdl }}
+        - name: db-ddl-secret-volume
+          secret:
+            secretName: {{ .Values.secret.dbPwdDdl.name }}
+            items:
+              - key: {{ .Values.secret.dbPwdDdl.key }}
+                path: {{ .Values.secret.dbPwdDdl.propPath }}
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -69,22 +85,35 @@ spec:
           env:
             - name: "TZ"
               value: "Europe/Berlin"
+            - name: SPRING_RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbit-mq-credentials
+                  key: RABBITMQ_USERNAME
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbit-mq-credentials
+                  key: RABBITMQ_PASSWORD
             {{- if .Values.debug.enable }}
             - name: "JAVA_TOOL_OPTIONS"
               value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9000"
             {{- end }}
-            {{- if eq (.Values.customEnvVars.FEATURE_FLAG_NEW_API_ENDPOINTS | toString) "true" }}
             - name: "API_ENTRYPOINT"
               value: "/"
             - name: "DEMIS_NETWORK_FHIR_STORAGE_WRITER_CONTEXT_PATH"
               value: "/"
-            {{- end }}
             {{- if $customEnvVars }}
             # Custom Environment Variables
             {{- range $_, $key := keys $customEnvVars | sortAlpha }}
             - name: {{ $key | quote }}
               value: {{ get $customEnvVars $key | quote }}
             {{- end }}
+            {{- end }}
+            {{- if .Values.secret }}
+            # Set Spring Configuration Import from Folder Structure
+            - name: "SPRING_CONFIG_IMPORT"
+              value: "configtree:/secrets/*/"
             {{- end }}
           # Mount Volumes in container
           volumeMounts:
@@ -93,6 +122,16 @@ spec:
           {{- if .Values.debug.enable }}
             - name: jfr-volume
               mountPath: /jfrdump
+          {{- end }}
+          {{- if .Values.secret.dbPwdUser }}
+            - name: db-user-secret-volume
+              readOnly: true
+              mountPath: "/secrets/db-user"
+          {{- end }}
+          {{- if .Values.secret.dbPwdDdl }}
+            - name: db-ddl-secret-volume
+              readOnly: true
+              mountPath: "/secrets/db-ddl"
           {{- end }}
           # Ports to be exposed from the container
           ports:

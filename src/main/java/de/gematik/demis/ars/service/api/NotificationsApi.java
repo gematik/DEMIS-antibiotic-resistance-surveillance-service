@@ -40,6 +40,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -109,5 +110,6 @@ public interface NotificationsApi {
           @RequestHeader(value = "Content-Type", required = true)
           String contentType,
       @Parameter(name = "body", description = "", required = true) @Valid @RequestBody String body,
+      @RequestHeader HttpHeaders headers,
       WebRequest webRequest);
 }
