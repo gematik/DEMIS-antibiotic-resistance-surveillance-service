@@ -32,7 +32,7 @@ import de.gematik.demis.ars.service.service.NotificationProcessingResult;
 import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.fhir.response.FhirResponseConverter;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Parameters;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -40,12 +40,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NotificationController implements NotificationsApi {
 
-  public final FhirResponseConverter fhirConverter;
-  public final NotificationService service;
-  public final FhirParametersResponseMapper fhirParametersResponseMapper;
+  private final FhirResponseConverter fhirConverter;
+  private final NotificationService service;
+  private final FhirParametersResponseMapper fhirParametersResponseMapper;
 
   @Override
   public ResponseEntity<Object> fhirProcessNotificationPost(
@@ -55,7 +55,7 @@ public class NotificationController implements NotificationsApi {
       final HttpHeaders headers,
       final WebRequest webRequest) {
     final MessageType messageType = MessageType.getMessageType(contentType);
-    final NotificationContext context = NotificationContext.fromHttpHeaders(headers);
+    final NotificationContext context = NotificationContext.fromHttpRequest(headers);
 
     NotificationProcessingResult processingResult =
         service.process(content, messageType, authorization, context);

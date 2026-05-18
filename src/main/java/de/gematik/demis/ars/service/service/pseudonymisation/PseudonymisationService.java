@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
@@ -47,7 +46,6 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Specimen;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /** Provides functionality to pseudonymize {@link Patient} resources within a {@link Bundle}. */
@@ -56,12 +54,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PseudonymisationService {
 
-  private static final String UUID_PREFIX = "urn:uuid:";
-
   private final SurveillancePseudonymServiceClient pseudonymServiceClient;
-
-  @Value("${feature.flag.surveillance_pseudonym_service_enabled}")
-  private boolean pseudonymServiceClientEnabled;
 
   private static LocalDate toLocalDate(final DateTimeType date) {
     final var timeZone =
@@ -94,12 +87,7 @@ public class PseudonymisationService {
     final List<String> pseudonyms = getPseudonyms(patient);
     validatePseudonym(pseudonyms);
     removePseudonyms(patient);
-    final PseudonymResponse newPseudonym;
-    if (pseudonymServiceClientEnabled) {
-      newPseudonym = callPseudoService(pseudonyms, referenceDate);
-    } else {
-      newPseudonym = generateFixPseudonym();
-    }
+    final PseudonymResponse newPseudonym = callPseudoService(pseudonyms, referenceDate);
     addPseudonym(patient, newPseudonym);
   }
 
@@ -167,12 +155,5 @@ public class PseudonymisationService {
 
   private void addPseudonym(final Patient patient, final PseudonymResponse newPseudonym) {
     patient.addIdentifier().setSystem(newPseudonym.system()).setValue(newPseudonym.value());
-  }
-
-  private PseudonymResponse generateFixPseudonym() {
-    final UUID tempUuid = UUID.fromString("10101010-1010-1010-1010-101010101010");
-    final String pseudonym = UUID_PREFIX + tempUuid;
-    return new PseudonymResponse(
-        "https://demis.rki.de/fhir/sid/SurveillancePatientPseudonym", pseudonym);
   }
 }

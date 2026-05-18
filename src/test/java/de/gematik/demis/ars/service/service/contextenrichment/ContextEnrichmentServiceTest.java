@@ -27,20 +27,19 @@ package de.gematik.demis.ars.service.service.contextenrichment;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.parser.FhirParser.deserializeResource;
-import static de.gematik.demis.ars.service.parser.FhirParser.serializeResource;
 import static de.gematik.demis.ars.service.utils.TestUtils.PROVENANCE_RESOURCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
+import de.gematik.demis.ars.service.service.fhir.NotificationEnrichmentService;
+import de.gematik.demis.ars.service.service.fhir.NotificationReader;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import lombok.SneakyThrows;
 import org.hl7.fhir.r4.model.Bundle;
@@ -51,8 +50,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 
 @ExtendWith(MockitoExtension.class)
 class ContextEnrichmentServiceTest {
@@ -61,16 +62,17 @@ class ContextEnrichmentServiceTest {
 
   @Captor private ArgumentCaptor<Bundle.BundleEntryComponent> entityComponentCaptor;
   @Mock private ContextEnrichmentServiceClient contextEnrichmentServiceClient;
-  @Mock FhirBundleOperator fhirBundleOperator;
-  ContextEnrichmentService underTest;
+  @Mock private FhirParser fhirParser;
+  @Mock private NotificationReader notificationReader;
+  @Mock private NotificationEnrichmentService notificationEnrichmentService;
+  @InjectMocks private ContextEnrichmentService underTest;
 
   private Bundle bundle;
-  private final String TOKEN = "SomeToken";
+  private static final String TOKEN = "SomeToken";
 
   @BeforeEach
   void setUp() {
     bundle = testUtils.getDefaultBundle();
-    underTest = new ContextEnrichmentService(contextEnrichmentServiceClient, fhirBundleOperator);
   }
 
   @Test
@@ -82,59 +84,54 @@ class ContextEnrichmentServiceTest {
   }
 
   @Test
-  @DisplayName("Test that fhirParser is not called if client throws an error")
-  void testFhirParserDoesNotGetCalledIfClientError() {
+  @DisplayName(
+      "Test that no provenance resource is added to notification if client throws an error")
+  void testNoProvenanceIsAddedToNotificationIfClientError() {
     when(contextEnrichmentServiceClient.enrichBundleWithContextInformation(any(), any()))
         .thenThrow(new RuntimeException("Some error"));
+    String bundleString = testUtils.resourceToJson(bundle);
     underTest.enrichBundleWithContextInformation(bundle, TOKEN);
-    verify(fhirBundleOperator, times(0)).addEntry(any(), any());
-  }
-
-  @Test
-  @DisplayName("Test that the bundle have not been changed if client throws an error")
-  void testIfTheSameBundleIsReturnedAsFallbackWhenClientError() {
-    String bundleString = serializeResource(bundle, APPLICATION_JSON);
-    when(contextEnrichmentServiceClient.enrichBundleWithContextInformation(any(), any()))
-        .thenThrow(new RuntimeException("Some error"));
-    underTest.enrichBundleWithContextInformation(bundle, TOKEN);
-    assertThat(serializeResource(bundle, APPLICATION_JSON)).isEqualTo(bundleString);
+    verify(notificationEnrichmentService, never()).addEntry(any(), any());
+    assertThat(testUtils.resourceToJson(bundle)).isEqualTo(bundleString);
   }
 
   @Test
   @DisplayName(
       "Test that the bundle have not been changed if the contextEnrichmentServiceClient returns invalid data")
   void testIfTheSameBundleIsReturnedAsFallbackWhenBundleHaveNoProvenance() {
-    String bundleString = serializeResource(bundle, APPLICATION_JSON);
+    String bundleString = testUtils.resourceToJson(bundle);
     when(contextEnrichmentServiceClient.enrichBundleWithContextInformation(any(), any()))
         .thenReturn("invalidJSONResponse");
 
     underTest.enrichBundleWithContextInformation(bundle, TOKEN);
 
-    assertThat(serializeResource(bundle, APPLICATION_JSON)).isEqualTo(bundleString);
+    assertThat(testUtils.resourceToJson(bundle)).isEqualTo(bundleString);
   }
 
   @Test
   @SneakyThrows
   @DisplayName("Test that the bundle enriched correctly")
   void testProvenanceGotAppendCorrectly() {
-    String response = testUtils.readFileToString(PROVENANCE_RESOURCE);
-    Provenance provenance =
-        deserializeResource(
-            testUtils.readFileToString(PROVENANCE_RESOURCE), APPLICATION_JSON, Provenance.class);
+    final String response = testUtils.readFileToString(PROVENANCE_RESOURCE);
+    final Provenance provenance =
+        testUtils.jsonToResource(testUtils.readFileToString(PROVENANCE_RESOURCE), Provenance.class);
     when(contextEnrichmentServiceClient.enrichBundleWithContextInformation(
             TOKEN, testUtils.getDefaultCompositionId()))
         .thenReturn(response);
-    when(fhirBundleOperator.getCompositionId(bundle))
+    when(fhirParser.deserializeResource(response, MediaType.APPLICATION_JSON, Provenance.class))
+        .thenReturn(provenance);
+    when(notificationReader.getCompositionId(bundle))
         .thenReturn(testUtils.getDefaultCompositionId());
+
     underTest.enrichBundleWithContextInformation(bundle, TOKEN);
 
     assertAll(
-        () -> verify(fhirBundleOperator).addEntry(eq(bundle), entityComponentCaptor.capture()),
         () ->
-            assertThat(
-                    serializeResource(
-                        entityComponentCaptor.getValue().getResource(), APPLICATION_JSON))
-                .isEqualTo(serializeResource(provenance, APPLICATION_JSON)),
+            verify(notificationEnrichmentService)
+                .addEntry(eq(bundle), entityComponentCaptor.capture()),
+        () ->
+            assertThat(testUtils.resourceToJson(entityComponentCaptor.getValue().getResource()))
+                .isEqualTo(testUtils.resourceToJson(provenance)),
         () ->
             assertThat(entityComponentCaptor.getValue().getFullUrl())
                 .isEqualTo(

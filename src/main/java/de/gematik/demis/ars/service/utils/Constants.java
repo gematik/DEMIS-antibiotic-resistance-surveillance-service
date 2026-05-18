@@ -27,53 +27,24 @@ package de.gematik.demis.ars.service.utils;
  * #L%
  */
 
-import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
 
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.Resource;
 
 @NoArgsConstructor(access = PRIVATE)
 public class Constants {
 
   public static final String PROFILE_BASE_URL = "https://demis.rki.de/fhir/";
-  public static final Profile<OperationOutcome> PROCESS_NOTIFICATION_RESPONSE_PROFILE =
-      new Profile<>(PROFILE_BASE_URL + "StructureDefinition/ProcessNotificationResponse");
+
   public static final String NOTIFICATION_BUNDLE_IDENTIFIER_SYSTEM =
       PROFILE_BASE_URL + "NamingSystem/NotificationBundleId";
+
   public static final String EXTENSION_URL_RECEPTION_TIME_STAMP_TYPE =
       PROFILE_BASE_URL + "StructureDefinition/ReceptionTimeStamp";
+
+  public static final String CODE_SYSTEM_BATCH_ID = PROFILE_BASE_URL + "CodeSystem/BatchId";
   public static final String RESPONSIBLE_HEALTH_DEPARTMENT_CODING_SYSTEM =
       PROFILE_BASE_URL + "CodeSystem/ResponsibleDepartment";
+
   public static final String RKI_DEPARTMENT_IDENTIFIER = "1.";
-
-  @Getter
-  public static class Profile<T extends Resource> {
-
-    private final String url;
-
-    private Profile(String url) {
-      requireNonNull(url, "url missing");
-      this.url = url;
-    }
-
-    /**
-     * Applies the URL wrapped by this object as the profile on the give resource {@code t} if not
-     * already present.
-     *
-     * @param t the resource on which the profile will be applied
-     */
-    public void applyTo(T t) {
-      if (t.getMeta().getProfile().stream()
-          .map(CanonicalType::asStringValue)
-          .toList()
-          .contains(url)) {
-        return;
-      }
-      t.getMeta().addProfile(url);
-    }
-  }
 }

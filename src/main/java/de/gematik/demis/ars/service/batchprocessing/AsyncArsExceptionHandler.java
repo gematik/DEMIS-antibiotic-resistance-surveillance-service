@@ -27,7 +27,6 @@ package de.gematik.demis.ars.service.batchprocessing;
  * #L%
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.exception.ArsValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +34,9 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.util.ErrorHandler;
+import tools.jackson.core.JacksonException;
 
+// TODO wahrscheinlich entfernen. ExceptionHandling Konzept abwarten
 @Slf4j
 @ConditionalOnProperty("ars.batch-processing.enabled")
 public class AsyncArsExceptionHandler implements ErrorHandler {
@@ -66,7 +67,7 @@ public class AsyncArsExceptionHandler implements ErrorHandler {
       }
     }
 
-    if (cause instanceof JsonProcessingException) {
+    if (cause instanceof JacksonException) {
       return true;
     }
 

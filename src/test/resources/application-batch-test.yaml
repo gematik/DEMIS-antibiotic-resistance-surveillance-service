@@ -1,0 +1,6 @@
+ars:
+  batch-processing:
+    enabled: true
+    encryption:
+      current-key: 0123456789abcdef
+      previous-key: fedcba9876543210
