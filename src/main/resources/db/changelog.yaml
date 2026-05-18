@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: classpath:db/changelog/01-batch-initial.yaml
+  - include:
+      file: classpath:db/changelog/02-batch-result.yaml

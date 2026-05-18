@@ -147,6 +147,7 @@ class FhirParametersResponseMapperTest {
 
   private NotificationProcessingResult createResult(
       List<Identifier> specimenIds, OperationOutcome outcome) {
-    return new NotificationProcessingResult(NOTIFICATION_ID, new Bundle(), outcome, specimenIds);
+    return new NotificationProcessingResult(
+        NOTIFICATION_ID, new Bundle(), outcome, specimenIds, "ORIGINAL-ID");
   }
 }

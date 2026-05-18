@@ -30,9 +30,10 @@ package de.gematik.demis.ars.service.service.validation;
 import static de.gematik.demis.ars.service.exception.ErrorCode.FHIR_VALIDATION_ERROR;
 import static de.gematik.demis.ars.service.exception.ErrorCode.FHIR_VALIDATION_FATAL;
 import static de.gematik.demis.ars.service.exception.ServiceCallErrorCode.VS;
-import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
-import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
-import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE_OLD;
+import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_API_VERSION_LEGACY;
+import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PACKAGE;
+import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PACKAGE_VERSION;
+import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PROFILE_LEGACY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.FATAL;
@@ -48,24 +49,31 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import ca.uhn.fhir.context.FhirContext;
 import de.gematik.demis.ars.service.exception.ArsValidationException;
 import de.gematik.demis.ars.service.service.NotificationContext;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.error.ServiceCallException;
 import de.gematik.demis.service.base.fhir.outcome.FhirOperationOutcomeService;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationValidationServiceTest {
@@ -73,13 +81,17 @@ class NotificationValidationServiceTest {
   private final TestUtils testUtil = new TestUtils();
   @Mock ValidationServiceClient client;
   @Mock FhirOperationOutcomeService outcomeService;
-  @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
-  NotificationContext context = NotificationContext.fromAmqpHeaders(Map.of());
 
-  @InjectMocks private NotificationValidationService underTest;
+  private NotificationValidationService underTest;
+
+  @Captor ArgumentCaptor<MultiValueMap<String, String>> headerCaptor;
+  private final NotificationContext context =
+      NotificationContext.fromHttpRequest(new HttpHeaders());
 
   @BeforeEach
   void setUp() {
+    final FhirParser fhirParser = new FhirParser(FhirContext.forR4Cached());
+    underTest = new NotificationValidationService(client, outcomeService, fhirParser);
     lenient()
         .when(outcomeService.allOk())
         .thenReturn(new OperationOutcome.OperationOutcomeIssueComponent().setSeverity(INFORMATION));
@@ -173,20 +185,38 @@ class NotificationValidationServiceTest {
     assertThat(exception.getErrorCode()).contains(VS);
   }
 
-  @Test
-  void shouldSetHeader() {
-    String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
+  @ParameterizedTest
+  @MethodSource("routingHeaders")
+  void shouldSetRoutingHeaders(
+      final String packageVersionHeaderName, final String packageHeaderName) {
+    final String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
     when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    underTest.validateFhir(bundleString, MessageType.JSON, context);
+    final String fhirPackageVersion = "v1";
+    final String fhirPackage = "ars-profile";
+    final Map<String, String> headers =
+        Map.of(packageVersionHeaderName, fhirPackageVersion, packageHeaderName, fhirPackage);
+    final NotificationContext contextForRoutingHeaders =
+        new NotificationContext(headers, UUID.randomUUID());
+    underTest.validateFhir(bundleString, MessageType.JSON, contextForRoutingHeaders);
 
     verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
     assertThat(headerCaptor.getValue())
         .isNotNull()
-        .hasSize(1)
-        .containsKey(HEADER_FHIR_PROFILE_OLD)
-        .extractingByKey(HEADER_FHIR_PROFILE_OLD)
-        .isEqualTo(List.of("ars-profile-snapshots"));
+        .containsKey(packageVersionHeaderName)
+        .extractingByKey(packageVersionHeaderName)
+        .isEqualTo(List.of(fhirPackageVersion));
+    assertThat(headerCaptor.getValue())
+        .isNotNull()
+        .containsKey(packageHeaderName)
+        .extractingByKey(packageHeaderName)
+        .isEqualTo(List.of(fhirPackage));
+  }
+
+  static Stream<Arguments> routingHeaders() {
+    return Stream.of(
+        Arguments.of(HEADER_FHIR_PACKAGE_VERSION, HEADER_FHIR_PACKAGE),
+        Arguments.of(HEADER_FHIR_API_VERSION_LEGACY, HEADER_FHIR_PROFILE_LEGACY));
   }
 
   @Test
@@ -195,9 +225,9 @@ class NotificationValidationServiceTest {
     String version = "v1";
     String profile = "ars-profile-snapshots";
     final HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.add(HEADER_FHIR_API_VERSION, version);
-    httpHeaders.add(HEADER_FHIR_PROFILE, profile);
-    final NotificationContext servletContext = NotificationContext.fromHttpHeaders(httpHeaders);
+    httpHeaders.add(HEADER_FHIR_PACKAGE_VERSION, version);
+    httpHeaders.add(HEADER_FHIR_PACKAGE, profile);
+    final NotificationContext servletContext = NotificationContext.fromHttpRequest(httpHeaders);
     when(client.validateJsonBundle(any(), eq(bundleString)))
         .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
 
@@ -206,28 +236,12 @@ class NotificationValidationServiceTest {
     verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
     assertThat(headerCaptor.getValue())
         .isNotNull()
-        .hasSize(3)
-        .containsKey(HEADER_FHIR_PROFILE)
-        .extractingByKey(HEADER_FHIR_PROFILE)
+        .hasSize(2)
+        .containsKey(HEADER_FHIR_PACKAGE)
+        .extractingByKey(HEADER_FHIR_PACKAGE)
         .isEqualTo(List.of(profile));
     assertThat(headerCaptor.getValue())
-        .extractingByKey(HEADER_FHIR_API_VERSION)
+        .extractingByKey(HEADER_FHIR_PACKAGE_VERSION)
         .isEqualTo(List.of(version));
-  }
-
-  @Test
-  void shouldSetOldHeaderOnFeatureFlag() {
-    String bundleString = testUtil.getDefaultBundleAsString(APPLICATION_JSON);
-    when(client.validateJsonBundle(any(), eq(bundleString)))
-        .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-    underTest.validateFhir(bundleString, MessageType.JSON, context);
-
-    verify(client).validateJsonBundle(headerCaptor.capture(), eq(bundleString));
-    assertThat(headerCaptor.getValue())
-        .isNotNull()
-        .hasSize(1)
-        .containsKey(HEADER_FHIR_PROFILE_OLD)
-        .extractingByKey(HEADER_FHIR_PROFILE_OLD)
-        .isEqualTo(List.of("ars-profile-snapshots"));
   }
 }

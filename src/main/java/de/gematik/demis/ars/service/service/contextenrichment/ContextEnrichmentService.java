@@ -26,11 +26,12 @@ package de.gematik.demis.ars.service.service.contextenrichment;
  * find details in the "Readme" file.
  * #L%
  */
-import static de.gematik.demis.ars.service.parser.FhirParser.deserializeResource;
 import static de.gematik.demis.ars.service.utils.Constants.PROFILE_BASE_URL;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
+import de.gematik.demis.ars.service.service.fhir.NotificationEnrichmentService;
+import de.gematik.demis.ars.service.service.fhir.NotificationReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
@@ -49,7 +50,9 @@ import org.springframework.stereotype.Service;
 public class ContextEnrichmentService {
 
   private final ContextEnrichmentServiceClient contextEnrichmentServiceClient;
-  private final FhirBundleOperator fhirBundleOperator;
+  private final FhirParser fhirParser;
+  private final NotificationReader notificationReader;
+  private final NotificationEnrichmentService notificationEnrichmentService;
 
   /**
    * Enriches the bundle with context information
@@ -65,14 +68,14 @@ public class ContextEnrichmentService {
     try {
       final String resp =
           contextEnrichmentServiceClient.enrichBundleWithContextInformation(
-              authorization, fhirBundleOperator.getCompositionId(bundle));
+              authorization, notificationReader.getCompositionId(bundle));
       final Provenance provenance =
-          deserializeResource(resp, MediaType.APPLICATION_JSON, Provenance.class);
+          fhirParser.deserializeResource(resp, MediaType.APPLICATION_JSON, Provenance.class);
       final BundleEntryComponent entry =
           new BundleEntryComponent()
               .setResource(provenance)
               .setFullUrl(PROFILE_BASE_URL + provenance.getId());
-      fhirBundleOperator.addEntry(bundle, entry);
+      notificationEnrichmentService.addEntry(bundle, entry);
     } catch (Exception e) {
       log.error("Error while enrich bundle: ", e);
     }

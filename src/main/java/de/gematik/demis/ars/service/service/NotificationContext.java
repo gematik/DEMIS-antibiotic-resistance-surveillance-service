@@ -27,10 +27,13 @@ package de.gematik.demis.ars.service.service;
  * #L%
  */
 
-import de.gematik.demis.ars.service.batchprocessing.AsyncNotificationListener;
+import static java.util.Objects.requireNonNull;
+
+import de.gematik.demis.ars.service.batchprocessing.NotificationListener;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.Value;
+import java.util.UUID;
+import java.util.function.Function;
 import org.springframework.http.HttpHeaders;
 
 /**
@@ -54,36 +57,38 @@ import org.springframework.http.HttpHeaders;
  * }</pre>
  *
  * @see NotificationService
- * @see AsyncNotificationListener
+ * @see NotificationListener
  */
-@Value
-public class NotificationContext {
+public record NotificationContext(Map<String, String> headers, UUID batchId) {
 
-  Map<String, String> headers;
-
-  private NotificationContext(Map<String, String> headers) {
-    this.headers = Map.copyOf(headers);
+  public boolean isBatchProcessing() {
+    return batchId != null;
   }
 
-  public static NotificationContext fromHttpHeaders(HttpHeaders httpHeaders) {
-    Map<String, String> headerMap = new HashMap<>();
-    httpHeaders.forEach(
-        (key, values) -> {
-          if (!values.isEmpty()) {
-            headerMap.put(key, values.getFirst());
-          }
-        });
-    return new NotificationContext(headerMap);
+  public static NotificationContext fromHttpRequest(final HttpHeaders httpHeaders) {
+    // TODO remove MultiValueMap
+    final Map<String, String> headerMap =
+        copyMap(httpHeaders.asMultiValueMap(), list -> list.isEmpty() ? null : list.getFirst());
+    return new NotificationContext(headerMap, null);
   }
 
-  public static NotificationContext fromAmqpHeaders(Map<String, Object> amqpHeaders) {
-    Map<String, String> headerMap = new HashMap<>();
-    amqpHeaders.forEach(
+  public static NotificationContext fromMessageQueue(
+      final Map<String, Object> amqpHeaders, final UUID batchId) {
+    final Map<String, String> headerMap =
+        copyMap(amqpHeaders, value -> value == null ? null : value.toString());
+    return new NotificationContext(headerMap, requireNonNull(batchId, "batchId is required"));
+  }
+
+  private static <T> Map<String, String> copyMap(
+      final Map<String, T> source, Function<T, String> valueToStringFunction) {
+    final Map<String, String> target = new HashMap<>();
+    source.forEach(
         (key, value) -> {
-          if (value != null) {
-            headerMap.put(key, value.toString());
+          final String valueString = valueToStringFunction.apply(value);
+          if (valueString != null) {
+            target.put(key, valueString);
           }
         });
-    return new NotificationContext(headerMap);
+    return target;
   }
 }

@@ -30,9 +30,9 @@ package de.gematik.demis.ars.service.api;
 import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.BUNDLE_IDENTIFIER_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.OPERATION_OUTCOME_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
-import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_API_VERSION;
-import static de.gematik.demis.ars.service.service.validation.ValidationServiceClient.HEADER_FHIR_PROFILE;
 import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON;
+import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PACKAGE;
+import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PACKAGE_VERSION;
 import static de.gematik.demis.ars.service.utils.TestUtils.TEST_TOKEN;
 import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATION_JSON;
 import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON;
@@ -91,17 +91,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.MultiValueMap;
 
 class NotificationControllerIT {
 
@@ -141,11 +140,7 @@ class NotificationControllerIT {
 
   @Nested
   @ActiveProfiles("without-database")
-  @SpringBootTest(
-      properties = {
-        "feature.flag.surveillance_pseudonym_service_enabled=true",
-        "feature.flag.move-error-id-to-diagnostics=true"
-      })
+  @SpringBootTest(properties = {"feature.flag.move-error-id-to-diagnostics=true"})
   @AutoConfigureMockMvc
   class NotificationController_DEFAULT {
 
@@ -156,7 +151,6 @@ class NotificationControllerIT {
     @MockitoBean private ValidationServiceClient validationClient;
     @MockitoBean private FhirStorageServiceClient fssClient;
     @MockitoBean private SurveillancePseudonymServiceClient pseudonymClient;
-    @Captor ArgumentCaptor<HttpHeaders> headerCaptor;
 
     @MockitoBean(answers = Answers.CALLS_REAL_METHODS)
     private ErrorFieldProvider errorFieldProvider;
@@ -286,7 +280,7 @@ class NotificationControllerIT {
                   .contentType(APPLICATION_JSON_VALUE)
                   .content(testUtil.getValidArsNotification(APPLICATION_JSON_VALUE)))
           .andExpectAll(
-              status().isUnprocessableEntity(),
+              status().is(422),
               jsonPath("$.resourceType").value("OperationOutcome"),
               jsonPath("$.issue").isArray(),
               jsonPath("$.issue", hasSize(2)),
@@ -352,7 +346,7 @@ class NotificationControllerIT {
                       .content(
                           testUtil.readFileToString(
                               ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON)))
-              .andExpect(status().isUnprocessableEntity())
+              .andExpect(status().is(422))
               .andReturn();
 
       final var expectedIssue = new OperationOutcomeIssueComponent();
@@ -474,23 +468,25 @@ class NotificationControllerIT {
       mockMvc.perform(
           post(contextPath + NOTIFICATION_URL)
               .header("Authorization", TEST_TOKEN)
-              .header(HEADER_FHIR_API_VERSION, apiVersion)
-              .header(HEADER_FHIR_PROFILE, profile)
+              .header("x-fhir-package-version", apiVersion)
+              .header("x-fhir-package", profile)
               .contentType(APPLICATION_JSON_VALUE)
               .accept(APPLICATION_JSON_VALUE)
               .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON)));
+
+      final ArgumentCaptor<MultiValueMap<String, String>> headerCaptor = ArgumentCaptor.captor();
       verify(validationClient)
           .validateJsonBundle(
               headerCaptor.capture(),
               eq(testUtil.readFileToString(VALID_ARS_NOTIFICATION_TWO_SPECIMEN_JSON)));
       assertThat(headerCaptor.getValue())
           .isNotNull()
-          .hasSize(3)
-          .containsKey(HEADER_FHIR_PROFILE)
-          .extractingByKey(HEADER_FHIR_PROFILE)
+          .hasSize(2)
+          .containsKey(HEADER_FHIR_PACKAGE)
+          .extractingByKey(HEADER_FHIR_PACKAGE)
           .isEqualTo(List.of(profile));
       assertThat(headerCaptor.getValue())
-          .extractingByKey(HEADER_FHIR_API_VERSION)
+          .extractingByKey(HEADER_FHIR_PACKAGE_VERSION)
           .isEqualTo(List.of(apiVersion));
     }
   }
@@ -532,7 +528,7 @@ class NotificationControllerIT {
                       .content(
                           testUtil.readFileToString(
                               ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON)))
-              .andExpect(status().isUnprocessableEntity())
+              .andExpect(status().is(422))
               .andReturn();
 
       final var expectedIssue = new OperationOutcomeIssueComponent();

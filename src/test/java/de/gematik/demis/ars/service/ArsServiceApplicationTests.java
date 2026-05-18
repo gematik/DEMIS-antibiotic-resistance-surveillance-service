@@ -27,17 +27,17 @@ package de.gematik.demis.ars.service;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.parser.FhirParser.serializeResource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import de.gematik.demis.ars.service.api.FhirParametersResponseMapper;
 import de.gematik.demis.ars.service.api.NotificationController;
 import de.gematik.demis.ars.service.service.NotificationProcessingResult;
 import de.gematik.demis.ars.service.service.NotificationService;
+import de.gematik.demis.ars.service.utils.TestUtils;
+import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
@@ -47,6 +47,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.context.request.WebRequest;
 
 @ActiveProfiles("without-database")
@@ -55,6 +56,7 @@ class ArsServiceApplicationTests {
 
   @MockitoBean private NotificationService notificationService;
   @MockitoBean private FhirParametersResponseMapper fhirParametersResponseMapper;
+  @MockitoBean private EntityManager entityManager;
   @Autowired private NotificationController notificationController;
 
   @Test
@@ -64,6 +66,7 @@ class ArsServiceApplicationTests {
         .thenReturn(mock(NotificationProcessingResult.class));
     when(fhirParametersResponseMapper.mapToParameters(any())).thenReturn(params);
     final HttpHeaders headers = mock(HttpHeaders.class);
+    when(headers.asMultiValueMap()).thenReturn(new LinkedMultiValueMap<>());
     final WebRequest webRequest = mock(WebRequest.class);
     when(webRequest.getHeaderNames()).thenReturn(Collections.emptyIterator());
     assertThat(
@@ -71,6 +74,6 @@ class ArsServiceApplicationTests {
                 .fhirProcessNotificationPost(
                     "Bearer", "application/fhir+json", "test", headers, webRequest)
                 .getBody())
-        .isEqualTo(serializeResource(params, APPLICATION_JSON));
+        .isEqualTo(new TestUtils().resourceToJson(params));
   }
 }

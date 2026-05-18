@@ -38,7 +38,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentService;
-import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
+import de.gematik.demis.ars.service.service.fhir.NotificationEnrichmentService;
+import de.gematik.demis.ars.service.service.fhir.NotificationReader;
 import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.sentinel.SentinelService;
@@ -46,7 +48,6 @@ import de.gematik.demis.ars.service.service.validation.NotificationValidationSer
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import java.util.List;
-import java.util.Map;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -58,13 +59,16 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
   private final TestUtils testUtil = new TestUtils();
   @Mock private NotificationValidationService validationService;
-  @Mock private FhirBundleOperator fhirBundleOperator;
+  @Mock private FhirParser fhirParser;
+  @Mock private NotificationReader notificationReader;
+  @Mock private NotificationEnrichmentService notificationEnrichmentService;
   @Mock private ContextEnrichmentService contextEnrichmentService;
   @Mock private PseudonymisationService pseudonymisationService;
   @Mock private SentinelService sentinelService;
@@ -72,13 +76,14 @@ class NotificationServiceTest {
   @Captor private ArgumentCaptor<String> uuidCaptor;
   @Captor private ArgumentCaptor<Bundle> bundleCaptor;
   @InjectMocks private NotificationService underTest;
-  NotificationContext context = NotificationContext.fromAmqpHeaders(Map.of());
+  private final NotificationContext context =
+      NotificationContext.fromHttpRequest(new HttpHeaders());
 
   @Test
   void shouldAddOperationOutcomeCorrectly() {
     when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
-    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
+    when(fhirParser.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
     doNothing().when(contextEnrichmentService).enrichBundleWithContextInformation(any(), any());
     doNothing().when(pseudonymisationService).replacePatientIdentifier(any());
@@ -102,9 +107,11 @@ class NotificationServiceTest {
   void shouldAddNewNotificationIdCorrectly() {
     when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
-    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
+    when(fhirParser.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
-    doNothing().when(fhirBundleOperator).enrichBundle(bundleCaptor.capture(), uuidCaptor.capture());
+    doNothing()
+        .when(notificationEnrichmentService)
+        .updateBundle(bundleCaptor.capture(), uuidCaptor.capture(), any());
     doNothing().when(sentinelService).removeSentinelData(any());
 
     NotificationProcessingResult output = underTest.process("test", MessageType.JSON, "", context);
@@ -117,9 +124,9 @@ class NotificationServiceTest {
   void shouldAddSpecimenIdCorrectly() {
     when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
-    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
+    when(fhirParser.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
-    when(fhirBundleOperator.getSpecimenAccessionIdentifier(any()))
+    when(notificationReader.getSpecimenAccessionIdentifier(any()))
         .thenReturn(List.of(new Identifier().setValue("specimenId")));
     doNothing().when(sentinelService).removeSentinelData(any());
 
@@ -135,9 +142,9 @@ class NotificationServiceTest {
   void shouldAddSpecimenIdsCorrectly() {
     when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
-    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
+    when(fhirParser.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
-    when(fhirBundleOperator.getSpecimenAccessionIdentifier(any()))
+    when(notificationReader.getSpecimenAccessionIdentifier(any()))
         .thenReturn(
             List.of(
                 new Identifier().setValue("specimenId"), new Identifier().setValue("specimenId2")));
@@ -155,7 +162,7 @@ class NotificationServiceTest {
   void shouldCallSentinelServiceBeforeFssService() {
     when(validationService.validateFhir(any(), any(), any()))
         .thenReturn(testUtil.generateOutcome(1, 0, 0, 0));
-    when(fhirBundleOperator.parseBundleFromNotification(any(), any()))
+    when(fhirParser.parseBundleFromNotification(any(), any()))
         .thenReturn(testUtil.getDefaultBundle());
     InOrder inOrder = inOrder(fssService, sentinelService);
 

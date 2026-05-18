@@ -44,11 +44,13 @@ import java.util.Collections;
 import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.springframework.http.MediaType;
 
@@ -81,6 +83,10 @@ public class TestUtils {
   public final String VALID_ARS_NOTIFICATION_XML_STRING =
       readFileToString(VALID_ARS_NOTIFICATION_XML);
   public static final String PROVENANCE_RESOURCE = "provenance/provenanceResource.json";
+  public static final String HEADER_FHIR_API_VERSION_LEGACY = "x-fhir-api-version";
+  public static final String HEADER_FHIR_PACKAGE_VERSION = "x-fhir-package-version";
+  public static final String HEADER_FHIR_PROFILE_LEGACY = "x-fhir-profile";
+  public static final String HEADER_FHIR_PACKAGE = "x-fhir-package";
   @Getter private final Bundle defaultBundle;
 
   @SneakyThrows
@@ -127,6 +133,14 @@ public class TestUtils {
 
   public Bundle getBundleFromJsonString(String value) {
     return fhirContext.newJsonParser().parseResource(Bundle.class, value);
+  }
+
+  public <T extends IBaseResource> T jsonToResource(final String json, final Class<T> resource) {
+    return fhirContext.newJsonParser().parseResource(resource, json);
+  }
+
+  public String resourceToJson(final Resource resource) {
+    return fhirContext.newJsonParser().encodeResourceToString(resource);
   }
 
   public Response createOutcomeResponse(IssueSeverity lvl) {

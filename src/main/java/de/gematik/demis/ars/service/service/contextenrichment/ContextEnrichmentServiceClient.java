@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 /** Client interface to create client for Context Enrichment Service */
 @FeignClient(name = "context-enrichment-service", url = "${ars.ces.url}")
-interface ContextEnrichmentServiceClient {
+public interface ContextEnrichmentServiceClient {
 
   @PostMapping(
       value = "/enrichment",

@@ -1,0 +1,125 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-batch-success
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            tableName: batch_success
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: batch_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notification_bundle_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: warning_count
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: db-user-permission-for-table-batch-success
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - sql:
+            sql: >
+              GRANT SELECT, INSERT ON TABLE batch_success TO "${db-user-service}";
+  - changeSet:
+      id: create-table-batch-failure
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            tableName: batch_failure
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: batch_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_reason
+                  type: CHAR(1)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_count
+                  type: INTEGER
+              - column:
+                  name: warning_count
+                  type: INTEGER
+              - column:
+                  name: detail
+                  type: VARCHAR(255)
+  - changeSet:
+      id: db-user-permission-for-table-batch-failure
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - sql:
+            sql: >
+              GRANT SELECT, INSERT ON TABLE batch_failure TO "${db-user-service}";
+  - changeSet:
+      id: create-index-batch-success
+      author: demis@gematik.de
+      changes:
+        - createIndex:
+            indexName: idx_batch_success
+            tableName: batch_success
+            columns:
+              - column:
+                  name: batch_id
+  - changeSet:
+      id: create-index-batch-failure
+      author: demis@gematik.de
+      changes:
+        - createIndex:
+            indexName: idx_batch_failure
+            tableName: batch_failure
+            columns:
+              - column:
+                  name: batch_id
+              - column:
+                  name: error_reason

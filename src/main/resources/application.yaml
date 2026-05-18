@@ -9,6 +9,7 @@ spring:
     listener:
       simple:
         concurrency: ${SPRING_RABBITMQ_CONCURENT_LISTENERS_COUNT:2}
+        prefetch: 1
 
   jpa:
     generate-ddl: false
@@ -46,6 +47,15 @@ ars:
     enabled: ${FEATURE_FLAG_ARS_BULK_ENABLED:false}
     control-queue: bulk.control
     secure-queue: bulk.secure
+    encryption:
+      # Current encryption key for secure-queue. Must be 16 Bytes
+      current-key:
+      # Previous encryption key for secure-queue for decrypting old messages (rolling key rotation)
+      previous-key:
+    result:
+      server-url: ${EXTERNAL_SERVER_URL:http://localhost:${server.port:8080}}
+      retention-period: 14d
+      retry-after-seconds: 1800
   validation:
     url: ${DEMIS_NETWORK_VALIDATION_SERVICE_ADDRESS:http://validation-service.demis.svc.cluster.local}
   ces:
@@ -63,10 +73,6 @@ base:
     operation-outcome:
       profile: "https://demis.rki.de/fhir/StructureDefinition/ProcessNotificationResponse"
       issue-threshold: ${ars.outcome-issue-threshold}
-
-feature:
-  flag:
-    surveillance_pseudonym_service_enabled: false
 
 management:
   health:

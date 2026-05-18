@@ -64,4 +64,5 @@ public record NotificationProcessingResult(
     String notificationId,
     Bundle bundle,
     OperationOutcome validationOutcome,
-    List<Identifier> specimenIdentifiers) {}
+    List<Identifier> specimenIdentifiers,
+    String originalDocumentId) {}

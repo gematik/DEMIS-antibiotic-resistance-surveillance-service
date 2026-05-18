@@ -1,6 +1,18 @@
 <div style="text-align:right"><img src="https://raw.githubusercontent.com/gematik/gematik.github.io/master/Gematik_Logo_Flag_With_Background.png" width="250" height="47" alt="gematik GmbH Logo"/> <br/> </div> <br/> 
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
+
+## Release 1.4.0 
+- updated base-image and updated from java 21 to java 25
+- removed featureFlag FEATURE_FLAG_SURVEILLANCE_PSEUDONYM_SERVICE_ENABLED
+- new endpoint to get batch result (statistics)
+- new endpoint to download detailed batch result as csv file
+- set rabbit listener prefetch to 1
+- add batchId as meta tag to notification
+- support for new routing headers added
+- batch message encryption
+- upgraded to spring boot 4
+
 ## Release 1.3.0
 - Removed istio helm chart
 - added async processing of bulk uploads from secure messaging queue
@@ -8,6 +20,7 @@
 - removed profile and changed to featureflag
 - removed featureFlag FEATURE_FLAG_ARS_VALIDATION_ENABLED
 - added processing for batch closing from control queue
+- results of batch processing are persisted  
 
 ## Release 1.2.4
 - Adjust requested resources 

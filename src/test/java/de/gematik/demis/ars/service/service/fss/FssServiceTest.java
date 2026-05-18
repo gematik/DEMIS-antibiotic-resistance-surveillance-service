@@ -31,15 +31,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+import ca.uhn.fhir.context.FhirContext;
 import de.gematik.demis.ars.service.exception.ArsServiceException;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.service.base.error.ServiceCallException;
 import org.hl7.fhir.r4.model.Bundle;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
@@ -48,18 +50,25 @@ import org.springframework.http.ResponseEntity;
 class FssServiceTest {
 
   @Captor private ArgumentCaptor<String> jsonStringCaptor;
-  private TestUtils testUtils = new TestUtils();
+  private final TestUtils testUtils = new TestUtils();
 
   @Mock FhirStorageServiceClient client;
 
-  @InjectMocks FssService service;
+  private FssService underTest;
+
+  @BeforeEach
+  void setup() {
+    underTest = new FssService(client, new FhirParser(FhirContext.forR4Cached()));
+  }
 
   @Test
   void shouldSendBundleInBundle() {
     Bundle bundle = testUtils.getDefaultBundle();
     when(client.sendNotification(jsonStringCaptor.capture()))
         .thenReturn(ResponseEntity.ok("Call successful"));
-    service.sendNotificationToFss(bundle);
+
+    underTest.sendNotificationToFss(bundle);
+
     Bundle transactionBundle = testUtils.getBundleFromJsonString(jsonStringCaptor.getValue());
     assertThat(transactionBundle.getEntry()).hasSize(1);
   }
@@ -68,16 +77,7 @@ class FssServiceTest {
   void shouldThrowArsFssExceptionIfRequestIsNotOk() {
     Bundle bundle = testUtils.getDefaultBundle();
     when(client.sendNotification(jsonStringCaptor.capture())).thenThrow(ServiceCallException.class);
-    assertThrows(ArsServiceException.class, () -> service.sendNotificationToFss(bundle));
-  }
 
-  @Test
-  void shouldSetTagForRkiCorrectly() {
-    Bundle bundle = testUtils.getDefaultBundle();
-    service.sendNotificationToFss(bundle);
-    assertThat(bundle.getMeta().getTag()).hasSize(1);
-    assertThat(bundle.getMeta().getTag().getFirst().getCode()).isEqualTo("1.");
-    assertThat(bundle.getMeta().getTag().getFirst().getSystem())
-        .isEqualTo("https://demis.rki.de/fhir/CodeSystem/ResponsibleDepartment");
+    assertThrows(ArsServiceException.class, () -> underTest.sendNotificationToFss(bundle));
   }
 }

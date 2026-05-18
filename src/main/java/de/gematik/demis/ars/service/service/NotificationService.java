@@ -28,7 +28,9 @@ package de.gematik.demis.ars.service.service;
  */
 
 import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentService;
-import de.gematik.demis.ars.service.service.fhir.FhirBundleOperator;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
+import de.gematik.demis.ars.service.service.fhir.NotificationEnrichmentService;
+import de.gematik.demis.ars.service.service.fhir.NotificationReader;
 import de.gematik.demis.ars.service.service.fss.FssService;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymisationService;
 import de.gematik.demis.ars.service.service.sentinel.SentinelService;
@@ -49,29 +51,44 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationService {
   private final NotificationValidationService validationService;
-  private final FhirBundleOperator fhirBundleOperator;
+  private final FhirParser fhirParser;
+  private final NotificationReader notificationReader;
+  private final NotificationEnrichmentService notificationEnrichmentService;
   private final PseudonymisationService pseudonymisationService;
   private final SentinelService sentinelService;
   private final ContextEnrichmentService contextEnrichmentService;
   private final FssService fssService;
 
   public NotificationProcessingResult process(
-      String content, MessageType messageType, String authorization, NotificationContext context) {
-    OperationOutcome validationOutcome =
+      final String content,
+      final MessageType messageType,
+      final String authorization,
+      final NotificationContext context) {
+
+    final OperationOutcome validationOutcome =
         validationService.validateFhir(content, messageType, context);
-    Bundle bundle = fhirBundleOperator.parseBundleFromNotification(content, messageType);
+
+    final Bundle bundle = fhirParser.parseBundleFromNotification(content, messageType);
+
     pseudonymisationService.replacePatientIdentifier(bundle);
+
     sentinelService.removeSentinelData(bundle);
-    String notificationId = UUID.randomUUID().toString();
+
     contextEnrichmentService.enrichBundleWithContextInformation(bundle, authorization);
-    fhirBundleOperator.enrichBundle(bundle, notificationId);
-    List<Identifier> specimenIdentifier = fhirBundleOperator.getSpecimenAccessionIdentifier(bundle);
+
+    final String originalNotificationId = notificationReader.getBundleId(bundle);
+    final String newNotificationId = UUID.randomUUID().toString();
+    notificationEnrichmentService.updateBundle(bundle, newNotificationId, context);
+
+    final List<Identifier> specimenIdentifier =
+        notificationReader.getSpecimenAccessionIdentifier(bundle);
+
     fssService.sendNotificationToFss(bundle);
 
-    logInfos(notificationId, bundle);
+    logInfos(newNotificationId, bundle);
 
     return new NotificationProcessingResult(
-        notificationId, bundle, validationOutcome, specimenIdentifier);
+        newNotificationId, bundle, validationOutcome, specimenIdentifier, originalNotificationId);
   }
 
   private void logInfos(final String notificationId, final Bundle bundle) {

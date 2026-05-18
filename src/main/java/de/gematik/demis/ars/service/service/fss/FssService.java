@@ -27,12 +27,9 @@ package de.gematik.demis.ars.service.service.fss;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.parser.FhirParser.serializeResource;
-import static de.gematik.demis.ars.service.utils.Constants.RESPONSIBLE_HEALTH_DEPARTMENT_CODING_SYSTEM;
-import static de.gematik.demis.ars.service.utils.Constants.RKI_DEPARTMENT_IDENTIFIER;
-
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
+import de.gematik.demis.ars.service.service.fhir.FhirParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
@@ -47,6 +44,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class FssService {
   private final FhirStorageServiceClient fssClient;
+  private final FhirParser fhirParser;
 
   /**
    * Takes the <Bundle> and wraps it into a transactionBundle. Therefor encryption for RKI will be
@@ -55,9 +53,8 @@ public class FssService {
    * @param bundle the information in <Bundle> representation to send to <FSS>
    */
   public void sendNotificationToFss(Bundle bundle) {
-    setRkiDepartmentIdentifierTag(bundle);
     Bundle transactionBundle = createTransactionBundle(bundle);
-    String jsonBundle = serializeResource(transactionBundle, MediaType.APPLICATION_JSON);
+    String jsonBundle = fhirParser.serializeResource(transactionBundle, MediaType.APPLICATION_JSON);
     try {
       fssClient.sendNotification(jsonBundle);
     } catch (Exception ex) {
@@ -83,11 +80,5 @@ public class FssService {
           .setUrl(url)
           .setMethod(Bundle.HTTPVerb.POST);
     }
-  }
-
-  private void setRkiDepartmentIdentifierTag(Bundle bundle) {
-    bundle
-        .getMeta()
-        .addTag(RESPONSIBLE_HEALTH_DEPARTMENT_CODING_SYSTEM, RKI_DEPARTMENT_IDENTIFIER, null);
   }
 }
