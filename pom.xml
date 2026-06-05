@@ -6,12 +6,12 @@
         <parent>
         <groupId>de.gematik.demis</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>4.0.3</version>
+        <version>4.0.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <artifactId>antibiotic-resistance-surveillance-service</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.1-SNAPSHOT</version>
     <name>Antibiotic-Resistance-Surveillance-Service</name>
     <packaging>jar</packaging>
     <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>

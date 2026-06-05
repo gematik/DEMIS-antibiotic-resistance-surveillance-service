@@ -32,23 +32,41 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile("batch-test")
 public class RabbitConfig {
 
-  @Value("${ars.batch-processing.control-queue}")
-  private String controlQueueName;
-
-  @Value("${ars.batch-processing.secure-queue}")
-  private String secureQueueName;
+  public static final String TEST_DLQ_CONTROL = "test.dlq.control";
+  public static final String TEST_DLQ_SECURE = "test.dlq.secure";
 
   @Bean
-  public Queue bulkControlQueue() {
-    return QueueBuilder.durable(controlQueueName).build();
+  public Queue bulkControlQueue(
+      @Value("${ars.batch-processing.control-queue}") final String controlQueueName) {
+    return QueueBuilder.durable(controlQueueName)
+        .withArgument("x-dead-letter-exchange", "")
+        .withArgument("x-dead-letter-routing-key", TEST_DLQ_CONTROL)
+        .build();
   }
 
   @Bean
-  public Queue bulkSecureQueue() {
-    return QueueBuilder.durable(secureQueueName).build();
+  public Queue bulkSecureQueue(
+      @Value("${ars.batch-processing.secure-queue}") final String secureQueueName) {
+    return QueueBuilder.durable(secureQueueName)
+        .withArgument("x-dead-letter-exchange", "")
+        .withArgument("x-dead-letter-routing-key", TEST_DLQ_SECURE)
+        .build();
+  }
+
+  // only for testing. dead letter queues do not exist in production
+  @Bean
+  public Queue deadLetterQueueControl() {
+    return QueueBuilder.durable(TEST_DLQ_CONTROL).build();
+  }
+
+  @Bean
+  public Queue deadLetterQueueSecure() {
+    return QueueBuilder.durable(TEST_DLQ_SECURE).build();
   }
 }

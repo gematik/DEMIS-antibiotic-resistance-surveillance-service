@@ -2,6 +2,15 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.4.1
+- arranged jvm options and resource limits
+- optimized custom environment variables handling in helm chart
+- updated docker base image to gematik1/osadl-alpine-openjdk25-jre:1.0.5
+- added retry mechanism to batch message processing
+- batch processing: handle different error types in error message
+- detailed results of batch processing can be retrieved compressed as gzip via HTTP header Accept-Encoding
+- activate tracing for rabbitmq listener
+
 ## Release 1.4.0 
 - updated base-image and updated from java 21 to java 25
 - removed featureFlag FEATURE_FLAG_SURVEILLANCE_PSEUDONYM_SERVICE_ENABLED
@@ -12,6 +21,7 @@
 - support for new routing headers added
 - batch message encryption
 - upgraded to spring boot 4
+- Added secret mapping for seperate rabbitmq user, password and vhost
 
 ## Release 1.3.0
 - Removed istio helm chart

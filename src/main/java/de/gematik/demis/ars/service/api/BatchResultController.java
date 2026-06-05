@@ -83,7 +83,8 @@ class BatchResultController implements BatchResultApi {
   }
 
   @Override
-  public ResponseEntity<StreamingResponseBody> exportCsv(final UUID batchId, final String query) {
+  public ResponseEntity<StreamingResponseBody> exportCsv(
+      final UUID batchId, final String query, String acceptEncoding) {
     final ResultQueryEnum type = toResultQueryEnum(requireNonNull(query));
     log.info("details for batch {} - {}", batchId, type);
     batchResultService.checkBatchExists(batchId);
@@ -91,11 +92,19 @@ class BatchResultController implements BatchResultApi {
     final StreamingResponseBody body =
         outputStream -> batchResultService.streamResult(batchId, type, outputStream);
 
-    final String filename = "batch-" + batchId + "-" + type.name().toLowerCase() + ".csv";
     return ResponseEntity.ok()
         .contentType(MEDIA_TYPE_CSV)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + determineFilename(batchId, type, acceptEncoding) + "\"")
         .header(HttpHeaders.CACHE_CONTROL, "no-store")
         .body(body);
+  }
+
+  private String determineFilename(
+      final UUID batchId, final ResultQueryEnum type, final String acceptEncoding) {
+    final String fileSuffix =
+        acceptEncoding != null && acceptEncoding.toLowerCase().contains("gzip") ? ".gzip" : ".csv";
+    return "batch-" + batchId + "-" + type.name().toLowerCase() + fileSuffix;
   }
 }

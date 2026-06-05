@@ -34,6 +34,7 @@ import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import de.gematik.demis.ars.service.batchprocessing.entity.BatchEntity;
 import de.gematik.demis.ars.service.batchprocessing.repository.BatchRepository;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.ImmediateRequeueAmqpException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -139,5 +141,16 @@ class BatchControlListenerTest {
         .hasMessageContaining("Cannot map `null` into type `int`");
 
     verify(repository, never()).save(any());
+  }
+
+  @Test
+  void dbExceptionThrowsRequeueException() {
+    final RuntimeException dbException = new RuntimeException();
+    when(repository.save(any())).thenThrow(dbException);
+
+    assertThatThrownBy(() -> underTest.processMessage(MESSAGE, headers))
+        .isInstanceOf(ImmediateRequeueAmqpException.class)
+        .hasMessageContaining(BATCH_ID)
+        .hasCause(dbException);
   }
 }

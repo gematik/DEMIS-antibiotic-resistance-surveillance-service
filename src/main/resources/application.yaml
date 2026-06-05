@@ -1,15 +1,20 @@
 spring:
   config:
     import: classpath:/base-config-application.yaml
+
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq.dmz.svc.cluster.local}
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME:rabbit_user}
     password: ${SPRING_RABBITMQ_PASSWORD:rabbit_password}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:bulk}
     listener:
       simple:
         concurrency: ${SPRING_RABBITMQ_CONCURENT_LISTENERS_COUNT:2}
         prefetch: 1
+        default-requeue-rejected: false
+        acknowledge-mode: auto
+        observation-enabled: true
 
   jpa:
     generate-ddl: false
@@ -40,6 +45,12 @@ info:
     name: '@project.name@'
     version: '@project.version@'
 
+server:
+  compression:
+    enabled: true
+    mime-types: "text/csv"
+    min-response-size: 1 # when accept-encoding is gzip all responses should be compressed
+
 ars:
   context-path: "${API_ENTRYPOINT:/}"
   outcome-issue-threshold: warning
@@ -52,6 +63,12 @@ ars:
       current-key:
       # Previous encryption key for secure-queue for decrypting old messages (rolling key rotation)
       previous-key:
+    retry:
+      enabled: true
+      max-retries: 3
+      delay-ms: 5000
+      max-delay-ms: 300000
+      multiplier: 3.0
     result:
       server-url: ${EXTERNAL_SERVER_URL:http://localhost:${server.port:8080}}
       retention-period: 14d

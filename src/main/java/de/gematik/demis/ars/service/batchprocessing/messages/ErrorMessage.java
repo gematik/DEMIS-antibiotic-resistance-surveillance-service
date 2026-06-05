@@ -1,4 +1,4 @@
-package de.gematik.demis.ars.service.batchprocessing.config;
+package de.gematik.demis.ars.service.batchprocessing.messages;
 
 /*-
  * #%L
@@ -27,13 +27,20 @@ package de.gematik.demis.ars.service.batchprocessing.config;
  * #L%
  */
 
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Configuration
-@ConditionalOnProperty("ars.batch-processing.enabled")
-@Profile("!test-without-rabbitmq")
-@EnableRabbit
-class RabbitMqConfig {}
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record ErrorMessage(String error) {
+
+  @JsonCreator
+  public ErrorMessage(@JsonProperty(value = "error", required = true) String error) {
+    this.error = error;
+  }
+
+  public enum ErrorType {
+    WAF,
+    PROCESSING_ERROR
+  }
+}

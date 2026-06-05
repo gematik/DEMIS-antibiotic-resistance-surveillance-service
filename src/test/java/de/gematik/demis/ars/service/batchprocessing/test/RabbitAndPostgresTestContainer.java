@@ -27,9 +27,8 @@ package de.gematik.demis.ars.service.batchprocessing.test;
  * #L%
  */
 
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.rabbitmq.RabbitMQContainer;
@@ -38,15 +37,7 @@ import org.testcontainers.rabbitmq.RabbitMQContainer;
 @DirtiesContext
 public abstract class RabbitAndPostgresTestContainer extends PostgresTestContainer {
 
-  @Container
+  @Container @ServiceConnection
   protected static final RabbitMQContainer rabbitMQ =
       new RabbitMQContainer("rabbitmq:4.2.3-management-alpine");
-
-  @DynamicPropertySource
-  protected static void registerProperties(final DynamicPropertyRegistry registry) {
-    registry.add("spring.rabbitmq.host", rabbitMQ::getHost);
-    registry.add("spring.rabbitmq.port", rabbitMQ::getAmqpPort);
-    registry.add("spring.rabbitmq.username", rabbitMQ::getAdminUsername);
-    registry.add("spring.rabbitmq.password", rabbitMQ::getAdminPassword);
-  }
 }

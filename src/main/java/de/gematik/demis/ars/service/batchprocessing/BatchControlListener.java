@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.ImmediateRequeueAmqpException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -79,7 +80,13 @@ public class BatchControlListener {
     BatchEntity batch = new BatchEntity();
     batch.setBatchId(batchUuid);
     batch.setNumberOfNotifications(numberOfNotifications);
-    repository.save(batch);
+    try {
+      repository.save(batch);
+    } catch (final Exception ex) {
+      log.error("{} - error saving control message. requeue message", batchId, ex);
+      throw new ImmediateRequeueAmqpException(
+          batchId + " - error saving close message. requeue message", ex);
+    }
 
     log.info("Closed batchId: {} with {} notifications", batchId, numberOfNotifications);
   }
