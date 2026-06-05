@@ -2,7 +2,6 @@
 {{- $dockerRepository := .Values.required.image.repository | required ".Values.required.image.repository is required." -}}
 {{- $dockerImage := .Values.required.image.name | required ".Values.required.image.name is required." -}}
 {{- $dockerTag := .Values.required.image.tag | default .Chart.AppVersion -}}
-{{- $customEnvVars := .Values.customEnvVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -91,40 +90,13 @@ spec:
           {{- end }}
           {{- end }}
           {{- end }}
+          # Inject RabbitMQ credentials (username, password, virtual-host) from secret
+          envFrom:
+            - secretRef:
+                name: {{ .Values.rabbitmqSecret.name }}
           # Set the Environment Variables for the container
           env:
-            - name: "TZ"
-              value: "Europe/Berlin"
-            - name: SPRING_RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: rabbit-mq-credentials
-                  key: RABBITMQ_USERNAME
-            - name: SPRING_RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbit-mq-credentials
-                  key: RABBITMQ_PASSWORD
-            {{- if .Values.debug.enable }}
-            - name: "JAVA_TOOL_OPTIONS"
-              value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9000"
-            {{- end }}
-            - name: "API_ENTRYPOINT"
-              value: "/"
-            - name: "DEMIS_NETWORK_FHIR_STORAGE_WRITER_CONTEXT_PATH"
-              value: "/"
-            {{- if $customEnvVars }}
-            # Custom Environment Variables
-            {{- range $_, $key := keys $customEnvVars | sortAlpha }}
-            - name: {{ $key | quote }}
-              value: {{ get $customEnvVars $key | quote }}
-            {{- end }}
-            {{- end }}
-            {{- if .Values.secret }}
-            # Set Spring Configuration Import from Folder Structure
-            - name: "SPRING_CONFIG_IMPORT"
-              value: "configtree:/secrets/*/"
-            {{- end }}
+            {{- include "ars-service.env" . | nindent 12 }}
           # Mount Volumes in container
           volumeMounts:
             - name: tmp-volume

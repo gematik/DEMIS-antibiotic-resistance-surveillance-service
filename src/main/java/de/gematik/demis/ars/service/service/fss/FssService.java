@@ -27,8 +27,6 @@ package de.gematik.demis.ars.service.service.fss;
  * #L%
  */
 
-import de.gematik.demis.ars.service.exception.ArsServiceException;
-import de.gematik.demis.ars.service.exception.ErrorCode;
 import de.gematik.demis.ars.service.service.fhir.FhirParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,12 +53,7 @@ public class FssService {
   public void sendNotificationToFss(Bundle bundle) {
     Bundle transactionBundle = createTransactionBundle(bundle);
     String jsonBundle = fhirParser.serializeResource(transactionBundle, MediaType.APPLICATION_JSON);
-    try {
-      fssClient.sendNotification(jsonBundle);
-    } catch (Exception ex) {
-      throw new ArsServiceException(
-          ErrorCode.INTERNAL_SERVER_ERROR, "Save notification failed", ex);
-    }
+    fssClient.sendNotification(jsonBundle);
   }
 
   private Bundle createTransactionBundle(Bundle bundle) {

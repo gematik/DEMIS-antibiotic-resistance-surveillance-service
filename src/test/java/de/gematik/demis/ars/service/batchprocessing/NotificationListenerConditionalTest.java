@@ -31,13 +31,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import de.gematik.demis.ars.service.batchprocessing.repository.BatchResultDAO;
-import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.service.base.security.crypto.AESEncryptionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.json.JsonMapper;
 
 class NotificationListenerConditionalTest {
 
@@ -69,13 +69,18 @@ class NotificationListenerConditionalTest {
     }
 
     @Bean
-    public NotificationService notificationService() {
-      return mock(NotificationService.class);
+    public RetryableNotificationProcessor notificationService() {
+      return mock(RetryableNotificationProcessor.class);
     }
 
     @Bean
     public BatchResultDAO batchResultDAO() {
       return mock(BatchResultDAO.class);
+    }
+
+    @Bean
+    public JsonMapper jsonMapper() {
+      return mock(JsonMapper.class);
     }
   }
 }

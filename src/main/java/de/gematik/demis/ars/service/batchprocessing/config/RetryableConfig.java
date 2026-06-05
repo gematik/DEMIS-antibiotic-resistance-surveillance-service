@@ -27,13 +27,38 @@ package de.gematik.demis.ars.service.batchprocessing.config;
  * #L%
  */
 
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.resilience.annotation.EnableResilientMethods;
 
 @Configuration
 @ConditionalOnProperty("ars.batch-processing.enabled")
-@Profile("!test-without-rabbitmq")
-@EnableRabbit
-class RabbitMqConfig {}
+@ConditionalOnProperty("ars.batch-processing.retry.enabled")
+// this activates the Retryable annotation which is used in RetryableNotificationProcessor
+@EnableResilientMethods
+@RequiredArgsConstructor
+@Slf4j
+public class RetryableConfig {
+
+  public static final String KEY_MAX_RETRIES = "ars.batch-processing.retry.max-retries";
+  public static final String KEY_DELAY = "ars.batch-processing.retry.delay-ms";
+  public static final String KEY_MAX_DELAY = "ars.batch-processing.retry.max-delay-ms";
+  public static final String KEY_MULTIPLIER = "ars.batch-processing.retry.multiplier";
+
+  // just for logging
+  private final Environment env;
+
+  @PostConstruct
+  void log() {
+    log.info(
+        "Retrying in batch processing ist enabled. Max-Retries={}, Delay={}ms, Max-Delays={}ms, Multiplier={}",
+        env.getProperty(KEY_MAX_RETRIES),
+        env.getProperty(KEY_DELAY),
+        env.getProperty(KEY_MAX_DELAY),
+        env.getProperty(KEY_MULTIPLIER));
+  }
+}

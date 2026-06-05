@@ -39,6 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,7 +55,6 @@ import de.gematik.demis.ars.service.exception.ArsValidationException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
 import de.gematik.demis.ars.service.service.NotificationContext;
 import de.gematik.demis.ars.service.service.NotificationProcessingResult;
-import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.error.ServiceCallException;
 import de.gematik.demis.service.base.security.crypto.AESEncryptionService;
@@ -62,22 +63,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.ImmediateRequeueAmqpException;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class NotificationListenerTest {
 
   private static final byte[] ENCRYPTED_MESSAGE = "some-encrypted-payload".getBytes();
@@ -85,10 +91,17 @@ class NotificationListenerTest {
   private static final byte[] ENCRYPTED_AUTHORIZATION = "some-encrypted-authorization".getBytes();
   private static final String DECRYPTED_AUTHORIZATION = "some-decrypted-authorization";
 
-  @Mock private NotificationService notificationService;
+  private static final String ERROR_MESSAGE_TEMPLATE =
+"""
+  {"error":"%s", "other_property":"is ignored"}
+""";
+
+  @Mock private RetryableNotificationProcessor notificationService;
   @Mock private AESEncryptionService encryptionService;
   @Mock private BatchResultDAO batchResultDAO;
-  @InjectMocks private NotificationListener underTest;
+
+  private NotificationListener underTest;
+
   @Captor private ArgumentCaptor<NotificationContext> notificationContextCaptor;
   @Captor private ArgumentCaptor<BatchResultBase> batchResultCaptor;
 
@@ -134,6 +147,13 @@ class NotificationListenerTest {
             ErrorReasonEnum.INTERNAL_ERROR,
             "INTERNAL_SERVER_ERROR"),
         Arguments.of(new RuntimeException("test"), ErrorReasonEnum.INTERNAL_ERROR, null));
+  }
+
+  @BeforeEach
+  void setup() {
+    underTest =
+        new NotificationListener(
+            encryptionService, notificationService, batchResultDAO, new JsonMapper());
   }
 
   @Test
@@ -234,21 +254,29 @@ class NotificationListenerTest {
         .hasMessage("Missing required AMQP header: " + HEADER_BATCH_ID);
   }
 
-  private void mockDecryptionService() {
-    when(encryptionService.decryptData(ENCRYPTED_MESSAGE)).thenReturn(DECRYPTED_MESSAGE);
-    when(encryptionService.decryptData(ENCRYPTED_AUTHORIZATION))
-        .thenReturn(DECRYPTED_AUTHORIZATION);
-  }
-
-  @Test
-  void errorMessage() {
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+        "WAF, WAF",
+        "PROCESSING_ERROR, INTERNAL_ERROR",
+        "UNKNOWN, INTERNAL_ERROR",
+        "NULL, INTERNAL_ERROR"
+      },
+      nullValues = "NULL")
+  void errorMessage(final String errorType, final ErrorReasonEnum expectedErrorReason) {
     final UUID batchId = UUID.randomUUID();
     final String documentId = "DOCUMENT_ID";
     final Map<String, Object> headers = new HashMap<>();
     headers.put(HEADER_BATCH_ID, batchId.toString());
     headers.put(HEADER_DOCUMENT_ID, documentId);
     headers.put(HEADER_TYPE, ERROR);
-    underTest.processMessage(ENCRYPTED_MESSAGE, headers);
+
+    final String errorMessage =
+        (errorType != null) ? ERROR_MESSAGE_TEMPLATE.formatted(errorType) : "{}";
+    log.info("error message = {}", errorMessage);
+
+    // Note: error message is not encrypted
+    underTest.processMessage(errorMessage.getBytes(), headers);
 
     Mockito.verifyNoInteractions(encryptionService);
     Mockito.verifyNoInteractions(notificationService);
@@ -256,8 +284,32 @@ class NotificationListenerTest {
     final BatchFailureEntity expectedBatchResult = new BatchFailureEntity();
     expectedBatchResult.setBatchId(batchId);
     expectedBatchResult.setDocumentId(documentId);
-    expectedBatchResult.setErrorReason(ErrorReasonEnum.WAF);
+    expectedBatchResult.setErrorReason(expectedErrorReason);
     assertSavedBatchResult(expectedBatchResult);
+  }
+
+  @Test
+  void dbExceptionThrowsRequeueException() {
+    final UUID batchId = UUID.randomUUID();
+    final String documentId = UUID.randomUUID().toString();
+    final Map<String, Object> headers = createNotificationMessageHeaders(batchId, documentId);
+    final RuntimeException dbException = new RuntimeException();
+
+    mockDecryptionService();
+    when(notificationService.process(any(), any(), any(), any()))
+        .thenReturn(mock(NotificationProcessingResult.class));
+    doThrow(dbException).when(batchResultDAO).save(any());
+
+    assertThatThrownBy(() -> underTest.processMessage(ENCRYPTED_MESSAGE, headers))
+        .isInstanceOf(ImmediateRequeueAmqpException.class)
+        .hasMessageContaining(batchId + " / " + documentId)
+        .hasCause(dbException);
+  }
+
+  private void mockDecryptionService() {
+    when(encryptionService.decryptData(ENCRYPTED_MESSAGE)).thenReturn(DECRYPTED_MESSAGE);
+    when(encryptionService.decryptData(ENCRYPTED_AUTHORIZATION))
+        .thenReturn(DECRYPTED_AUTHORIZATION);
   }
 
   private void assertSavedBatchResult(final BatchResultBase expectedBatchResult) {

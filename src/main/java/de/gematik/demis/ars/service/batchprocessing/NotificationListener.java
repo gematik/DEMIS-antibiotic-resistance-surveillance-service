@@ -36,13 +36,13 @@ import de.gematik.demis.ars.service.batchprocessing.entity.BatchFailureEntity;
 import de.gematik.demis.ars.service.batchprocessing.entity.BatchResultBase;
 import de.gematik.demis.ars.service.batchprocessing.entity.BatchSuccessEntity;
 import de.gematik.demis.ars.service.batchprocessing.entity.ErrorReasonEnum;
+import de.gematik.demis.ars.service.batchprocessing.messages.ErrorMessage;
 import de.gematik.demis.ars.service.batchprocessing.messages.constants.BatchMessageType;
 import de.gematik.demis.ars.service.batchprocessing.repository.BatchResultDAO;
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.exception.ArsValidationException;
 import de.gematik.demis.ars.service.service.NotificationContext;
 import de.gematik.demis.ars.service.service.NotificationProcessingResult;
-import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.fhirparserlibrary.MessageType;
 import de.gematik.demis.service.base.error.ServiceCallException;
 import de.gematik.demis.service.base.security.crypto.AESEncryptionService;
@@ -52,10 +52,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
+import org.springframework.amqp.ImmediateRequeueAmqpException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Component
@@ -64,8 +66,9 @@ import org.springframework.stereotype.Component;
 public class NotificationListener {
 
   private final AESEncryptionService encryptionService;
-  private final NotificationService notificationService;
+  private final RetryableNotificationProcessor notificationService;
   private final BatchResultDAO batchResultDAO;
+  private final JsonMapper jsonMapper;
 
   /**
    * Processes an incoming encrypted notification message from the RabbitMQ queue and stores the
@@ -76,7 +79,6 @@ public class NotificationListener {
    *
    * @param message the encrypted message body from the queue
    * @param amqpHeaders the AMQP message headers containing
-   * @see NotificationContext#fromMessage(Map)
    */
   @RabbitListener(queues = "${ars.batch-processing.secure-queue}")
   public void processMessage(final byte[] message, @Headers final Map<String, Object> amqpHeaders) {
@@ -86,21 +88,36 @@ public class NotificationListener {
 
     final BatchResultBase batchProcessingResult =
         switch (type) {
-          case ERROR -> processErrorMessage(batchId, documentId);
+          case ERROR -> processErrorMessage(batchId, documentId, message);
           case NOTIFICATION -> processNotification(batchId, documentId, amqpHeaders, message);
           default -> throw new IllegalArgumentException("not supported");
         };
 
-    batchResultDAO.save(batchProcessingResult);
+    try {
+      batchResultDAO.save(batchProcessingResult);
+    } catch (final Exception ex) {
+      log.error("{} / {} - error saving batch result. requeue message", batchId, documentId, ex);
+      throw new ImmediateRequeueAmqpException(
+          batchId + " / " + documentId + " - error saving batch result. requeue message", ex);
+    }
   }
 
-  private BatchFailureEntity processErrorMessage(final UUID batchId, final String documentId) {
+  private BatchFailureEntity processErrorMessage(
+      final UUID batchId, final String documentId, final byte[] message) {
     final BatchFailureEntity batchResult = createBatchFailure(batchId, documentId);
-    // TODO derzeit gibt es auch noch processing_error (steht in der message).
-    // Dieser ist aber nicht spezifiziert und wir warten erstmal den ErrorHandling Spike ab, bevor
-    // wir es hier noch handeln.
-    batchResult.setErrorReason(ErrorReasonEnum.WAF);
+    batchResult.setErrorReason(
+        isWafError(message) ? ErrorReasonEnum.WAF : ErrorReasonEnum.INTERNAL_ERROR);
     return batchResult;
+  }
+
+  private boolean isWafError(final byte[] message) {
+    try {
+      final ErrorMessage errorMessage = jsonMapper.readValue(message, ErrorMessage.class);
+      return ErrorMessage.ErrorType.WAF.name().equalsIgnoreCase(errorMessage.error());
+    } catch (final Exception ex) {
+      log.error("error reading error message. ", ex);
+      return false;
+    }
   }
 
   private BatchResultBase processNotification(

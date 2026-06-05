@@ -40,6 +40,7 @@ import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR;
 import static org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.WARNING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,6 +49,7 @@ import de.gematik.demis.ars.service.batchprocessing.entity.BatchFailureEntity;
 import de.gematik.demis.ars.service.batchprocessing.entity.BatchSuccessEntity;
 import de.gematik.demis.ars.service.batchprocessing.entity.ErrorReasonEnum;
 import de.gematik.demis.ars.service.batchprocessing.test.RabbitAndPostgresTestContainer;
+import de.gematik.demis.ars.service.batchprocessing.test.RabbitConfig;
 import de.gematik.demis.ars.service.service.contextenrichment.ContextEnrichmentServiceClient;
 import de.gematik.demis.ars.service.service.fss.FhirStorageServiceClient;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymResponse;
@@ -60,11 +62,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.springframework.amqp.ImmediateRequeueAmqpException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +86,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.util.MultiValueMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -83,6 +94,7 @@ import org.springframework.util.MultiValueMap;
 @EnableJpaRepositories(
     basePackageClasses = NotificationListenerSystemTest.class,
     considerNestedRepositories = true)
+@Slf4j
 class NotificationListenerSystemTest extends RabbitAndPostgresTestContainer {
 
   private static final Duration MAX_WAIT_TIMEOUT = Duration.of(2, SECONDS);
@@ -96,6 +108,8 @@ class NotificationListenerSystemTest extends RabbitAndPostgresTestContainer {
   @Autowired private BatchSuccessRepository batchSuccessRepository;
   @Autowired private BatchFailureRepository batchFailureRepository;
   @Autowired private AESEncryptionService encryptionService;
+
+  @MockitoSpyBean private NotificationListener notificationListener;
 
   // mock external service calls
   @MockitoBean private ContextEnrichmentServiceClient contextEnrichmentServiceClient;
@@ -117,6 +131,11 @@ class NotificationListenerSystemTest extends RabbitAndPostgresTestContainer {
     headers.put("x-fhir-package-version", fhirPackageVersion);
     headers.put("x-fhir-package", fhirPackage);
     return headers;
+  }
+
+  @AfterEach
+  void cleanUp() {
+    getDlqMessageNonBlocking();
   }
 
   @Test
@@ -189,16 +208,26 @@ class NotificationListenerSystemTest extends RabbitAndPostgresTestContainer {
     await().atMost(MAX_WAIT_TIMEOUT).untilAsserted(() -> assertFailureDbResult(expected));
   }
 
-  @Test
-  void wafErrorMessage() {
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+        "WAF, WAF",
+        "PROCESSING_ERROR, INTERNAL_ERROR",
+        "UNKNOWN, INTERNAL_ERROR",
+        "NULL, INTERNAL_ERROR"
+      },
+      nullValues = "NULL")
+  void wafErrorMessage(final String errorType, final ErrorReasonEnum expectedErrorReason) {
     final UUID batchId = UUID.randomUUID();
     final String documentId = UUID.randomUUID().toString();
-    final String errorMessage = "{\"error\":\"WAF\"}";
+    final String errorMessage =
+        (errorType != null) ? "{\"error\":\"%s\"}".formatted(errorType) : "{}";
+    log.info("error message = {}", errorMessage);
 
     final BatchFailureEntity expected = new BatchFailureEntity();
     expected.setBatchId(batchId);
     expected.setDocumentId(documentId);
-    expected.setErrorReason(ErrorReasonEnum.WAF);
+    expected.setErrorReason(expectedErrorReason);
 
     rabbitTemplate.send(
         messageQueue,
@@ -211,6 +240,56 @@ class NotificationListenerSystemTest extends RabbitAndPostgresTestContainer {
     await().atMost(MAX_WAIT_TIMEOUT).untilAsserted(() -> assertFailureDbResult(expected));
 
     verifyNoInteractions(validationClient, pseudonymClient, fssClient);
+  }
+
+  @Test
+  void messageRequeue() {
+    Mockito.doThrow(new ImmediateRequeueAmqpException("just for test"))
+        .doNothing()
+        .when(notificationListener)
+        .processMessage(any(), any());
+
+    rabbitTemplate.send(
+        messageQueue, MessageBuilder.withBody("does not matter".getBytes()).build());
+
+    await()
+        .atMost(MAX_WAIT_TIMEOUT)
+        .untilAsserted(() -> verify(notificationListener, times(2)).processMessage(any(), any()));
+
+    assertThat(getDlqMessageNonBlocking()).isNull();
+  }
+
+  @Test
+  void messageReject() {
+    final String batchId = UUID.randomUUID().toString();
+
+    Mockito.doThrow(new RuntimeException("just for test"))
+        .doNothing()
+        .when(notificationListener)
+        .processMessage(any(), any());
+
+    rabbitTemplate.send(
+        messageQueue,
+        MessageBuilder.withBody("does not matter".getBytes())
+            .setHeader(HEADER_BATCH_ID, batchId)
+            .build());
+
+    await().atMost(MAX_WAIT_TIMEOUT).untilAsserted(() -> assertDlqContainsMessage(batchId));
+
+    verify(notificationListener, times(1)).processMessage(any(), any());
+    assertThat(rabbitTemplate.receive(RabbitConfig.TEST_DLQ_SECURE)).isNull();
+  }
+
+  @Nullable
+  private Message getDlqMessageNonBlocking() {
+    return rabbitTemplate.receive(RabbitConfig.TEST_DLQ_SECURE);
+  }
+
+  private void assertDlqContainsMessage(final String batchId) {
+    final Message dlqMessage = getDlqMessageNonBlocking();
+    assertThat(dlqMessage).isNotNull();
+    assertThat((String) dlqMessage.getMessageProperties().getHeader(HEADER_BATCH_ID))
+        .isEqualTo(batchId);
   }
 
   private void mockValidationServiceCall(final OperationOutcome.IssueSeverity returnedSeverity) {

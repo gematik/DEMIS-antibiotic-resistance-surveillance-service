@@ -32,14 +32,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import ca.uhn.fhir.context.FhirContext;
-import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.service.fhir.FhirParser;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.service.base.error.ServiceCallException;
+import feign.RetryableException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -73,11 +75,12 @@ class FssServiceTest {
     assertThat(transactionBundle.getEntry()).hasSize(1);
   }
 
-  @Test
-  void shouldThrowArsFssExceptionIfRequestIsNotOk() {
+  @ParameterizedTest
+  @ValueSource(classes = {ServiceCallException.class, RetryableException.class})
+  void shouldNotCatchFeignCallException(final Class<? extends Exception> exceptionClass) {
     Bundle bundle = testUtils.getDefaultBundle();
-    when(client.sendNotification(jsonStringCaptor.capture())).thenThrow(ServiceCallException.class);
+    when(client.sendNotification(jsonStringCaptor.capture())).thenThrow(exceptionClass);
 
-    assertThrows(ArsServiceException.class, () -> underTest.sendNotificationToFss(bundle));
+    assertThrows(exceptionClass, () -> underTest.sendNotificationToFss(bundle));
   }
 }
