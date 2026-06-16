@@ -14,7 +14,7 @@ See the Licence for the specific language governing permissions and limitations 
 
 This project includes:
   Angus Activation Registries under EDL 1.0
-  Antibiotic-Resistance-Surveillance-Service under Licensed under the EUPL 1.2
+  Antibiotic-Resistance-Surveillance under Licensed under the EUPL 1.2
   ANTLR 4 Runtime under BSD-3-Clause
   Apache Commons Codec under Apache-2.0
   Apache Commons Collections under Apache License, Version 2.0
@@ -39,6 +39,9 @@ This project includes:
   Apache Jena - ShEx under The Apache Software License, Version 2.0
   Apache Log4j API under Apache-2.0
   Apache Thrift under The Apache Software License, Version 2.0
+  ars-db-schema under Licensed under the EUPL 1.2
+  ars-purger under Licensed under the EUPL 1.2
+  ars-service under Licensed under the EUPL 1.2
   asm under BSD-3-Clause
   ASM based accessors helper used by json-smart under The Apache Software License, Version 2.0
   AspectJ Weaver under Eclipse Public License - v 2.0
@@ -302,6 +305,7 @@ This project includes:
   spring-cloud-contract-wiremock under Apache License, Version 2.0
   spring-cloud-starter under Apache License, Version 2.0
   spring-cloud-test-support under Apache License, Version 2.0
+  spring-parent under EUPL-1.2
   spring-security-crypto under Apache License, Version 2.0
   springdoc-openapi-starter-common under The Apache License, Version 2.0
   springdoc-openapi-starter-webmvc-api under The Apache License, Version 2.0

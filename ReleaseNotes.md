@@ -2,6 +2,13 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.5.0
+- added automatic API doc generation
+- added a circuit breaker to RabbitMQ listener to handle database downtime
+- converted to multi-maven-project
+- Added purger module to delete old batch results from database
+- updated spring-parent to 4.0.5
+
 ## Release 1.4.1
 - arranged jvm options and resource limits
 - optimized custom environment variables handling in helm chart

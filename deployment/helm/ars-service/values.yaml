@@ -23,25 +23,25 @@ required:
 # IMPORTANT: these values must be defined in the Secret Objects
 config:
   # The (external) Secret Objects
-  secrets: {}
+  secrets: { }
 
 # Extra Labels to be added
 # E.g.
 # customLabels:
 #   my-label: my-label-value
-customLabels: {}
+customLabels: { }
 
 # Extra labels for deployments
-deploymentLabels: {}
+deploymentLabels: { }
 
 # Define custom Container Entrypoint and Arguments (e.g. JVM Tuning)
 # If not given, the Entrypoint defined in Dockerfile will be used
 application:
-  entrypoint: []
-  parameters: []
+  entrypoint: [ ]
+  parameters: [ ]
 
 # Define Image Pull Secrets if using private registry
-imagePullSecrets: []
+imagePullSecrets: [ ]
 nameOverride: "ars-service"
 fullnameOverride: "ars-service"
 
@@ -49,13 +49,13 @@ serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: {}
+  annotations: { }
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 # Annotations for Workload
-annotations: {}
+annotations: { }
 
 # Annotations for Pods
 podAnnotations:
@@ -72,6 +72,7 @@ customEnvVars:
   DB_URL: "jdbc:postgresql://pgbouncer.demis.svc.cluster.local:5432/demis-bulk-stats"
   DB_USER: ars-bulk-stats-user
   LIQUIBASE_DB_USER: ars-bulk-stats-ddl
+  PARAM_LIQUIBASE_DB_USER_PURGER: ars-bulk-stats-purger
   SPRING_LIQUIBASE_ENABLED: false
   FEATURE_FLAG_MOVE_ERROR_ID_TO_DIAGNOSTICS: "false"
 
@@ -99,7 +100,7 @@ secret:
     propPath: ars/batch-processing/encryption/previous-key
 
 # Pod Security Context - applies to all containers in a Pod
-podSecurityContext: 
+podSecurityContext:
   # The GID to tell the Kubelet to modify permissions of a volume owned by a pod
   fsGroup: 10000
   # Determines when to apply fsGroup actions - "Always" is the default
@@ -120,7 +121,7 @@ securityContext:
   #Usually no longer required. Determines whether /proc is masked to the container. Do not mount /proc from a host to a container
   procMount: Default
   # The SELinux context to be applied to the container. Must not be explicitly set to Unconfined.
-  seccompProfile: 
+  seccompProfile:
     type: "RuntimeDefault"
   #Which GID container process is assigned
   runAsGroup: 10000
@@ -132,8 +133,8 @@ securityContext:
   readOnlyRootFilesystem: true
   #Ability to remove and /or add Linux Capabilities
   capabilities:
-    drop: 
-    - all
+    drop:
+      - all
 
 service:
   type: ClusterIP
@@ -141,7 +142,7 @@ service:
     http: 8080
 
 # Default Resources
-resources: 
+resources:
   limits:
     memory: "700Mi"
   requests:
@@ -155,9 +156,9 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
-nodeSelector: {}
+nodeSelector: { }
 
-tolerations: []
+tolerations: [ ]
 
 istio:
   enable: true

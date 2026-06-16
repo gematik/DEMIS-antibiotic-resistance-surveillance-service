@@ -3,18 +3,23 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-        <parent>
+    <parent>
         <groupId>de.gematik.demis</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>4.0.4</version>
+        <version>4.0.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <artifactId>antibiotic-resistance-surveillance-service</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
-    <name>Antibiotic-Resistance-Surveillance-Service</name>
-    <packaging>jar</packaging>
+    <artifactId>ars</artifactId>
+    <version>1.5.0-SNAPSHOT</version>
+    <name>Antibiotic-Resistance-Surveillance</name>
+    <packaging>pom</packaging>
     <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
+
+    <properties>
+        <spring-parent.version>4.0.5</spring-parent.version>
+        <openapi-generator.inputSpec>${project.build.directory}/spec/api-spec.yaml</openapi-generator.inputSpec>
+    </properties>
 
     <licenses>
         <license>
@@ -23,62 +28,40 @@
         </license>
     </licenses>
 
-    <properties>
-        <openapitools-jackson-databind-nullable-version>0.2.6</openapitools-jackson-databind-nullable-version>
-    </properties>
+    <modules>
+        <module>service</module>
+        <module>purger</module>
+        <module>db-schema</module>
+    </modules>
 
-    <!-- TODO Hier wieder rausnehmen und in Spring Parent anpassen -->
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.checkerframework</groupId>
-                <artifactId>checker-qual</artifactId>
-                <version>3.49.5</version>
+                <groupId>de.gematik.demis</groupId>
+                <artifactId>ars-db-schema</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-liquibase</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.demis</groupId>
-            <artifactId>fhir-parser-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-structures-dstu2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-structures-r4</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-        </dependency>
-
-        <!-- RabbitMQ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-rabbitmq</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openapitools</groupId>
-            <artifactId>jackson-databind-nullable</artifactId>
-            <version>${openapitools-jackson-databind-nullable-version}</version>
-        </dependency>
-    </dependencies>
+    <profiles>
+        <profile>
+            <id>docker</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>${maven-antrun-plugin.version}</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

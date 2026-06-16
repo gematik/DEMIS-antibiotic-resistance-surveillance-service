@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: db-purger-permission-for-table-batch
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      preConditions:
+        - onFail: CONTINUE
+        - not:
+            - changeLogPropertyDefined:
+                property: db-user-purger
+                value: _UNDEFINED_
+      changes:
+        - sql:
+            sql: >
+              GRANT SELECT, DELETE ON TABLE batch TO "${db-user-purger}";
+  - changeSet:
+      id: db-purger-permission-for-table-batch-success
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      preConditions:
+        - onFail: CONTINUE
+        - not:
+            - changeLogPropertyDefined:
+                property: db-user-purger
+                value: _UNDEFINED_
+      changes:
+        - sql:
+            sql: >
+              GRANT SELECT, DELETE ON TABLE batch_success TO "${db-user-purger}";
+  - changeSet:
+      id: db-purger-permission-for-table-batch-failure
+      author: demis@gematik.de
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      preConditions:
+        - onFail: CONTINUE
+        - not:
+            - changeLogPropertyDefined:
+                property: db-user-purger
+                value: _UNDEFINED_
+      changes:
+        - sql:
+            sql: >
+              GRANT SELECT, DELETE ON TABLE batch_failure TO "${db-user-purger}";
