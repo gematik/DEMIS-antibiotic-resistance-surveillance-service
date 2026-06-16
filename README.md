@@ -2,7 +2,12 @@
 
 # Antibiotic-Resistance-Surveillance-Service
 
-[![Quality Gate Status](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=alert_status&token=f6b0d2644cdc236a78e65a44ef61eb7f161ba1ab)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)[![Vulnerabilities](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=vulnerabilities&token=f6b0d2644cdc236a78e65a44ef61eb7f161ba1ab)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)[![Bugs](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=bugs&token=f6b0d2644cdc236a78e65a44ef61eb7f161ba1ab)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)[![Code Smells](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=code_smells&token=f6b0d2644cdc236a78e65a44ef61eb7f161ba1ab)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)[![Lines of Code](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=ncloc&token=f6b0d2644cdc236a78e65a44ef61eb7f161ba1ab)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)[![Coverage](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=coverage&token=f6b0d2644cdc236a78e65a44ef61eb7f161ba1ab)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)
+[![Quality Gate Status](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=alert_status&token=sqb_f7996ad793dce129229035421414701664f2de72)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)
+[![Vulnerabilities](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=vulnerabilities&token=sqb_f7996ad793dce129229035421414701664f2de72)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)
+[![Bugs](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=bugs&token=sqb_f7996ad793dce129229035421414701664f2de72)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)
+[![Code Smells](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=code_smells&token=sqb_f7996ad793dce129229035421414701664f2de72)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)
+[![Lines of Code](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=ncloc&token=sqb_f7996ad793dce129229035421414701664f2de72)](https://sonar.prod.ccs.gematik.solutions/dashboard?id=de.gematik.demis%3Aantibiotic-resistance-surveillance-service)
+[![Coverage](https://sonar.prod.ccs.gematik.solutions/api/project_badges/measure?project=de.gematik.demis%3Aantibiotic-resistance-surveillance-service&metric=coverage&token=sqb_f7996ad793dce129229035421414701664f2de72)](https://sonar.prod.cc
 
 <details>
   <summary>Table of Contents</summary>
@@ -40,7 +45,7 @@ See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the (newe
 
 ### Prerequisites
 
-The Project requires Java 21 and Maven 3.8+.
+The Project requires Java 25 and Maven 3.8+.
 
 ### Installation
 
