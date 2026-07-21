@@ -2,6 +2,11 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.6.0
+- replaced pod anti-affinity with topology spread constraints for pod distribution
+- arranged jvm options
+- fixed handling of falsy custom environment variables (false, 0) in helm chart
+
 ## Release 1.5.0
 - added automatic API doc generation
 - added a circuit breaker to RabbitMQ listener to handle database downtime
