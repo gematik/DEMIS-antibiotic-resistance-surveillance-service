@@ -159,20 +159,15 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - {{ include "ars-service.name" . }}
-              - key: version
-                operator: In
-                values:
-                - {{ .Chart.AppVersion | quote }}
-            topologyKey: "kubernetes.io/hostname"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+          matchLabelKeys:
+            - pod-template-hash
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}

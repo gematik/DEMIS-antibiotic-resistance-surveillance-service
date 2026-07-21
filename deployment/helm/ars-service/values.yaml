@@ -65,7 +65,7 @@ podAnnotations:
 
 # Environment Variables to be defined
 customEnvVars:
-  JAVA_TOOL_OPTIONS: "-XX:ActiveProcessorCount=2 -XX:MaxRAMPercentage=45.0 -XX:MaxMetaspaceSize=192m -XX:+UseG1GC"
+  JAVA_TOOL_OPTIONS: "-XX:ActiveProcessorCount=2 -XX:MaxRAMPercentage=40.0 -XX:MaxMetaspaceSize=192m -XX:+UseG1GC"
   TZ: "Europe/Berlin"
   API_ENTRYPOINT: "/"
   DEMIS_NETWORK_FHIR_STORAGE_WRITER_CONTEXT_PATH: "/"
