@@ -4,16 +4,16 @@
   <parent>
     <groupId>de.gematik.demis</groupId>
     <artifactId>spring-parent</artifactId>
-    <version>4.0.6</version>
+    <version>4.1.12</version>
     <relativePath></relativePath><!-- lookup parent from repository -->
   </parent>
   <artifactId>ars</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
+  <version>1.6.1-SNAPSHOT</version>
   <name>Antibiotic-Resistance-Surveillance</name>
   <packaging>pom</packaging>
   <description>Service to enable laboratories and hospitals to transmit data to ARS (Antibiotic Resistance Surveillance) via their primary systems (KIS/LIS).</description>
   <properties>
-    <spring-parent.version>4.0.5</spring-parent.version>
+    <spring-parent.version>4.1.12</spring-parent.version>
     <openapi-generator.inputSpec>${project.build.directory}/spec/api-spec.yaml</openapi-generator.inputSpec>
   </properties>
   <licenses>

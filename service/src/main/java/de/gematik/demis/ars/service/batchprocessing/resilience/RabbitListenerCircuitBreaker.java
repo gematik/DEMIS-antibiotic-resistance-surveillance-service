@@ -30,7 +30,7 @@ package de.gematik.demis.ars.service.batchprocessing.resilience;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 
