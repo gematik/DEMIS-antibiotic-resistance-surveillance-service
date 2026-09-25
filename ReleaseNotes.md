@@ -2,6 +2,13 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.6.1
+- updated spring-parent to 4.1.7
+- updated docker base image to gematik1/osadl-alpine-openjdk25-jre:1.0.8
+- added VEX documents to repository
+- Updated minor/patch versions of dependencies
+- hardened connection to rabbitmq during roling update and unavailability of service
+
 ## Release 1.6.0
 - replaced pod anti-affinity with topology spread constraints for pod distribution
 - arranged jvm options
