@@ -27,48 +27,80 @@ package de.gematik.demis.ars.service.service.sentinel;
  * #L%
  */
 
-import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_SENTINEL_JSON;
-import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_SENTINEL_PROCESSED_JSON;
-import static de.gematik.demis.ars.service.utils.TestUtils.VALID_ARS_NOTIFICATION_JSON;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import de.gematik.demis.ars.service.utils.TestUtils;
+import java.util.Set;
 import org.hl7.fhir.r4.model.Bundle;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SentinelServiceTest {
 
-  final IParser jsonParser = FhirContext.forR4Cached().newJsonParser();
-  final TestUtils testUtils = new TestUtils();
-  final SentinelService underTest = new SentinelService();
+  private final Bundle bundle = new Bundle();
+
+  @Mock private SentinelTypeDetection typeDetection;
+  @Mock private SentinelCleanupService cleanupService;
+  @InjectMocks private SentinelService underTest;
+
+  @BeforeEach
+  void setUp() {
+    underTest.setFeatureFlagSentinelEnabled(true);
+  }
 
   @Test
-  void shouldRemoveSentinelData() {
-    final Bundle bundle = testUtils.readFileToBundle(ARS_NOTIFICATION_SENTINEL_JSON);
-    final Bundle expected = testUtils.readFileToBundle(ARS_NOTIFICATION_SENTINEL_PROCESSED_JSON);
+  void shouldSkipCleanupForChlamydia() {
+    executeTest(SentinelType.CHLAMYDIA);
+    verifyNoInteractions(cleanupService);
+  }
+
+  @Test
+  void shouldSkipCleanupForChlamydiaAndMeasles() {
+    executeTest(SentinelType.MEASLES, SentinelType.CHLAMYDIA);
+    verifyNoInteractions(cleanupService);
+  }
+
+  @Test
+  void shouldRemovePatientAddressAndCoverageForMeasles() {
+    executeTest(SentinelType.MEASLES);
+
+    verify(cleanupService).removePatientAddress(bundle);
+    verify(cleanupService).removeCoverage(bundle);
+    verify(cleanupService, never()).removeReasonCodes(bundle);
+  }
+
+  @Test
+  void shouldRemoveAllSentinelRelatedDataForNoSpecialType() {
+    executeTest();
+
+    verify(cleanupService).removePatientAddress(bundle);
+    verify(cleanupService).removeCoverage(bundle);
+    verify(cleanupService).removeReasonCodes(bundle);
+  }
+
+  @Test
+  void shouldSkipDetectionAndRemoveAllSentinelRelatedDataWhenFeatureFlagIsDisabled() {
+    underTest.setFeatureFlagSentinelEnabled(false);
 
     underTest.removeSentinelData(bundle);
 
-    assertThat(jsonParser.encodeResourceToString(bundle))
-        .isEqualToIgnoringWhitespace(jsonParser.encodeResourceToString(expected));
+    verifyNoInteractions(typeDetection);
+    verify(cleanupService).removePatientAddress(bundle);
+    verify(cleanupService).removeCoverage(bundle);
+    verify(cleanupService).removeReasonCodes(bundle);
   }
 
-  @Test
-  void shouldHandleEmptyBundle() {
-    final Bundle emptyBundle = new Bundle();
-    assertDoesNotThrow(() -> underTest.removeSentinelData(emptyBundle));
-  }
-
-  @Test
-  void shouldHandleBundleWithNoRelevantResources() {
-    final Bundle bundle = testUtils.readFileToBundle(VALID_ARS_NOTIFICATION_JSON);
-    final Bundle expected = testUtils.readFileToBundle(VALID_ARS_NOTIFICATION_JSON);
-
-    assertDoesNotThrow(() -> underTest.removeSentinelData(bundle));
-    assertThat(jsonParser.encodeResourceToString(bundle))
-        .isEqualToIgnoringWhitespace(jsonParser.encodeResourceToString(expected));
+  private void executeTest(SentinelType... detectedTypes) {
+    when(typeDetection.detect(any())).thenReturn(Set.of(detectedTypes));
+    underTest.removeSentinelData(bundle);
+    verify(typeDetection).detect(bundle);
   }
 }

@@ -27,68 +27,101 @@ package de.gematik.demis.ars.service.service.sentinel;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.function.BiFunction;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Coverage;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.ServiceRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/**
- * Service that performs in-place removal of sentinel sensitive data from a FHIR {@link Bundle}. The
- * following modifications are applied:
- *
- * <ul>
- *   <li>Clears all addresses from {@link Patient} resources.
- *   <li>Removes all {@link Coverage} resources from the bundle.
- *   <li>Clears Coverage references from {@link ServiceRequest} resources.
- *   <li>Clears reason codes from {@link ServiceRequest} resources.
- * </ul>
- */
+/** Orchestrates sentinel detection and cleanup. */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class SentinelService {
 
+  private final SentinelTypeDetection typeDetection;
+  private final SentinelCleanupService cleanupService;
+
+  @Value("${ars.sentinel.enabled}")
+  @Setter(AccessLevel.PACKAGE)
+  private boolean featureFlagSentinelEnabled;
+
+  @PostConstruct
+  void logFF() {
+    log.info("FEATURE_FLAG_ARS_SENTINEL_ENABLED = {}", featureFlagSentinelEnabled);
+  }
+
   /**
-   * Removes sentinel data from the provided bundle. Modifies the bundle in-place; no copy is
-   * created.
+   * Applies sentinel cleanup rules based on the detected types.
    *
-   * @param bundle the FHIR bundle to sanitize; must be non-null
+   * <ul>
+   *   <li>CHLAMYDIA: nothing is removed (takes precedence over MASERN).
+   *   <li>MAESLES: patient address and coverage are removed, reason codes are kept.
+   *   <li>Otherwise: patient address, coverage and reason codes are removed.
+   * </ul>
+   *
+   * Conservative by design: if the FUTS value sets could not be loaded (only possible if they were
+   * never loaded successfully before), no type is detected and everything is removed. The
+   * processing is not aborted in this case.
    */
-  public void removeSentinelData(Bundle bundle) {
-    removePatientAddress(bundle);
-    removeCoverage(bundle);
-    removeReasonCodes(bundle);
-  }
+  public void removeSentinelData(final Bundle bundle) {
+    if (!featureFlagSentinelEnabled) {
+      legacyLogic(bundle);
+      return;
+    }
 
-  private void removePatientAddress(Bundle bundle) {
-    for (final Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      final Resource resource = entry.getResource();
-      if (resource instanceof Patient patient) {
-        patient.getAddress().clear();
-      }
+    final Set<SentinelType> detectedTypes = typeDetection.detect(bundle);
+    final Set<CleanupStep> cleanupSteps = determineCleanupSteps(detectedTypes);
+
+    final Set<String> removedResources = new LinkedHashSet<>();
+    cleanupSteps.forEach(
+        cleanupStep -> {
+          if (cleanupStep.getCleanupAction().apply(cleanupService, bundle)) {
+            removedResources.add(cleanupStep.getResourceName());
+          }
+        });
+
+    if (!removedResources.isEmpty()) {
+      log.info("Sentinel information removed: {}", removedResources);
     }
   }
 
-  private void removeCoverage(Bundle bundle) {
-    // remove Coverage resources from the bundle
-    bundle.getEntry().removeIf(entry -> entry.getResource() instanceof Coverage);
-    // remove references to Coverage resources in ServiceRequest resources
-    for (final Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      final Resource resource = entry.getResource();
-      if (resource instanceof ServiceRequest serviceRequest) {
-        serviceRequest.getInsurance().clear();
-      }
+  private Set<CleanupStep> determineCleanupSteps(final Set<SentinelType> detectedTypes) {
+    final EnumSet<CleanupStep> cleanupSteps = EnumSet.allOf(CleanupStep.class);
+
+    if (detectedTypes.contains(SentinelType.CHLAMYDIA)) {
+      cleanupSteps.clear();
     }
+
+    if (detectedTypes.contains(SentinelType.MEASLES)) {
+      cleanupSteps.remove(CleanupStep.REASON_CODE);
+    }
+
+    return cleanupSteps;
   }
 
-  private void removeReasonCodes(Bundle bundle) {
-    for (final Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      final Resource resource = entry.getResource();
-      if (resource instanceof ServiceRequest serviceRequest) {
-        serviceRequest.getReasonCode().clear();
-      }
-    }
+  private void legacyLogic(final Bundle bundle) {
+    cleanupService.removePatientAddress(bundle);
+    cleanupService.removeCoverage(bundle);
+    cleanupService.removeReasonCodes(bundle);
+  }
+
+  @RequiredArgsConstructor
+  @Getter
+  private enum CleanupStep {
+    PATIENT_ADDRESS("Patient.Address", SentinelCleanupService::removePatientAddress),
+    COVERAGE("Coverage", SentinelCleanupService::removeCoverage),
+    REASON_CODE("ReasonCode", SentinelCleanupService::removeReasonCodes);
+
+    private final String resourceName;
+    private final BiFunction<SentinelCleanupService, Bundle, Boolean> cleanupAction;
   }
 }

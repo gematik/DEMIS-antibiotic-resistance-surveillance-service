@@ -29,4 +29,5 @@ package de.gematik.demis.ars.service.batchprocessing.messages;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record BatchCloseMessage(@JsonProperty("numberOfMessages") int numberOfMessages) {}
+public record BatchCloseMessage(
+    @JsonProperty(value = "numberOfMessages", required = true) int numberOfMessages) {}

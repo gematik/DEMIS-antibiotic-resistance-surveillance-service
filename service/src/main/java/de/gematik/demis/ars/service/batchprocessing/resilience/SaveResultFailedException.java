@@ -27,7 +27,15 @@ package de.gematik.demis.ars.service.batchprocessing.resilience;
  * #L%
  */
 
-public class SaveResultFailedException extends RuntimeException {
+import org.springframework.amqp.ImmediateRequeueAmqpException;
+
+/**
+ * Extends {@link ImmediateRequeueAmqpException} so the message is requeued even if the listener
+ * container is already stopping. In that case Spring AMQP skips the {@link
+ * RabbitListenerErrorHandler} and would otherwise reject the message without requeue
+ * (default-requeue-rejected=false).
+ */
+public class SaveResultFailedException extends ImmediateRequeueAmqpException {
   public SaveResultFailedException(final String message, final Throwable cause) {
     super(message, cause);
   }

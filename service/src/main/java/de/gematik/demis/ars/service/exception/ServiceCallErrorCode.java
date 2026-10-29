@@ -33,4 +33,5 @@ public interface ServiceCallErrorCode {
   String CES = "CES";
   String FSS = "FSS";
   String PSEUDO = "PSEUDO";
+  String FUTS = "FUTS";
 }
