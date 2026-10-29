@@ -142,7 +142,12 @@ public class PseudonymisationService {
             .date(referenceDate)
             .build();
 
-    return pseudonymServiceClient.createPseudonym(request);
+    try {
+      return pseudonymServiceClient.createPseudonym(request);
+    } catch (final PseudonymsBelongsToDifferentChainsException _) {
+      throw new ArsServiceException(
+          INVALID_PSEUDONYMS, "Pseudonyms must not belong to different patients");
+    }
   }
 
   private List<String> getPseudonyms(final Patient patient) {

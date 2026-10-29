@@ -138,7 +138,7 @@ class BatchControlListenerTest {
 
     assertThatThrownBy(() -> underTest.processMessage(emptyMessage, headers))
         .isInstanceOf(JacksonException.class)
-        .hasMessageContaining("Cannot map `null` into type `int`");
+        .hasMessageContaining("Missing required creator property 'numberOfMessages'");
 
     verify(repository, never()).save(any());
   }

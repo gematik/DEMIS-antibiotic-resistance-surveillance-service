@@ -34,6 +34,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.status;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -95,7 +96,7 @@ class SurveillancePseudonymServiceClientIntegrationTest {
   }
 
   @Test
-  void invalidRequest() {
+  void invalidRequest_should_throwsGenericServiceCallException() {
     stubFor(post("/pseudonym").willReturn(status(400)));
 
     final var request = new PseudonymRequest("", "", null);
@@ -106,5 +107,15 @@ class SurveillancePseudonymServiceClientIntegrationTest {
         .isNotNull()
         .returns(400, ServiceCallException::getHttpStatus)
         .returns("PSEUDO", ServiceCallException::getErrorCode);
+  }
+
+  @Test
+  void response422PseudonymsBelongToDifferentChainsShouldThrowsSpecificException() {
+    stubFor(post("/pseudonym").willReturn(status(422)));
+
+    final var request = new PseudonymRequest("a", "b", LocalDate.now());
+
+    assertThatThrownBy(() -> underTest.createPseudonym(request))
+        .isInstanceOf(PseudonymsBelongsToDifferentChainsException.class);
   }
 }

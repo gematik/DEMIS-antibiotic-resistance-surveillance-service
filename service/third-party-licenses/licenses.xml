@@ -188,7 +188,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.21</version>
+      <version>2.22</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -201,7 +201,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.21.6</version>
+      <version>2.22.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -214,7 +214,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.21.5</version>
+      <version>2.22.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -227,7 +227,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>2.21.5</version>
+      <version>2.22.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -240,7 +240,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>2.21.5</version>
+      <version>2.22.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -497,7 +497,7 @@
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
-      <version>5.36.0</version>
+      <version>5.37.0</version>
       <licenses>
         <license>
           <name>AL 2.0</name>
@@ -534,7 +534,7 @@
     <dependency>
       <groupId>com.squareup.okio</groupId>
       <artifactId>okio-jvm</artifactId>
-      <version>3.9.1</version>
+      <version>3.18.2</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -651,7 +651,7 @@
     <dependency>
       <groupId>de.gematik.demis</groupId>
       <artifactId>ars-db-schema</artifactId>
-      <version>1.6.1-SNAPSHOT</version>
+      <version>1.7.0-SNAPSHOT</version>
       <licenses>
         <license>
           <name>Licensed under the EUPL 1.2</name>
@@ -687,7 +687,7 @@
     <dependency>
       <groupId>de.gematik.demis</groupId>
       <artifactId>spring-parent</artifactId>
-      <version>4.1.12</version>
+      <version>4.1.14</version>
       <licenses>
         <license>
           <name>EUPL-1.2</name>
@@ -1640,7 +1640,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.20.0</version>
+      <version>3.21.0</version>
       <licenses>
         <license>
           <name>Apache-2.0</name>
@@ -1917,7 +1917,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk18on</artifactId>
-      <version>1.85</version>
+      <version>1.86</version>
       <licenses>
         <license>
           <name>Bouncy Castle Licence</name>
@@ -2260,7 +2260,7 @@
     <dependency>
       <groupId>org.eclipse.jetty.ee10</groupId>
       <artifactId>jetty-ee10-servlet</artifactId>
-      <version>12.1.12</version>
+      <version>12.1.14</version>
       <licenses>
         <license>
           <name>EPL-2.0</name>
@@ -2279,7 +2279,7 @@
     <dependency>
       <groupId>org.eclipse.jetty.ee10</groupId>
       <artifactId>jetty-ee10-servlets</artifactId>
-      <version>12.1.12</version>
+      <version>12.1.14</version>
       <licenses>
         <license>
           <name>EPL-2.0</name>
@@ -2298,7 +2298,7 @@
     <dependency>
       <groupId>org.eclipse.jetty.ee10</groupId>
       <artifactId>jetty-ee10-webapp</artifactId>
-      <version>12.1.12</version>
+      <version>12.1.14</version>
       <licenses>
         <license>
           <name>EPL-2.0</name>
@@ -2688,7 +2688,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>jackson-databind-nullable</artifactId>
-      <version>0.2.11</version>
+      <version>0.2.12</version>
       <licenses>
         <license>
           <name>Apache License 2.0</name>
@@ -2725,7 +2725,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.13</version>
+      <version>42.7.14</version>
       <licenses>
         <license>
           <name>BSD-2-Clause</name>
@@ -2829,7 +2829,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-common</artifactId>
-      <version>3.0.3</version>
+      <version>3.1.1</version>
       <licenses>
         <license>
           <name>The Apache License, Version 2.0</name>
@@ -2841,7 +2841,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-      <version>3.0.3</version>
+      <version>3.1.1</version>
       <licenses>
         <license>
           <name>The Apache License, Version 2.0</name>
@@ -2853,7 +2853,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>3.0.3</version>
+      <version>3.1.1</version>
       <licenses>
         <license>
           <name>The Apache License, Version 2.0</name>
@@ -3988,7 +3988,7 @@
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>swagger-ui</artifactId>
-      <version>5.32.11</version>
+      <version>5.33.1</version>
       <licenses>
         <license>
           <name>Apache-2.0</name>
@@ -4038,7 +4038,7 @@
     <dependency>
       <groupId>org.wiremock.integrations</groupId>
       <artifactId>wiremock-spring-boot</artifactId>
-      <version>4.2.2</version>
+      <version>4.4.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -4116,7 +4116,7 @@
     <dependency>
       <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>3.1.6</version>
+      <version>3.2.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>
@@ -4129,7 +4129,7 @@
     <dependency>
       <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>3.1.5</version>
+      <version>3.2.3</version>
       <licenses>
         <license>
           <name>The Apache Software License, Version 2.0</name>

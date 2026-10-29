@@ -74,9 +74,7 @@ public class TestUtils {
   public static final String ARS_NOTIFICATION_THREE_PATIENT_IDENTIFIER =
       "testdata/ars-notification-three-patient-identifier.json";
   public static final String ARS_NOTIFICATION_SENTINEL_JSON =
-      "testdata/ars-notification-sentinel.json";
-  public static final String ARS_NOTIFICATION_SENTINEL_PROCESSED_JSON =
-      "testdata/ars-notification-sentinel-processed.json";
+      "testdata/sentinel/ars-notification-sentinel.json";
   private static final FhirContext fhirContext = FhirContext.forR4Cached();
   public final String VALID_ARS_NOTIFICATION_JSON_STRING =
       readFileToString(VALID_ARS_NOTIFICATION_JSON);

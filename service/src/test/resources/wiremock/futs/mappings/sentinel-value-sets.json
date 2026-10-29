@@ -1,0 +1,87 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/ValueSet",
+        "queryParameters": {
+          "system": {
+            "equalTo": "https://demis.rki.de/fhir/ars/ValueSet/testMasernLOINC"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "system": "http://loinc.org",
+            "code": "MAS-CODE"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/ValueSet",
+        "queryParameters": {
+          "system": {
+            "equalTo": "https://demis.rki.de/fhir/ars/ValueSet/antwortMasernSNOMED"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": []
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/ValueSet",
+        "queryParameters": {
+          "system": {
+            "equalTo": "https://demis.rki.de/fhir/ars/ValueSet/testChlamydienLOINC"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "system": "http://loinc.org",
+            "code": "CHY-CODE"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/ValueSet",
+        "queryParameters": {
+          "system": {
+            "equalTo": "https://demis.rki.de/fhir/ars/ValueSet/antwortChlamydienSNOMED"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": []
+      }
+    }
+  ]
+}
+

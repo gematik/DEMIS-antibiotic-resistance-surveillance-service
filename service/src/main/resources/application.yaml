@@ -90,6 +90,19 @@ ars:
     context-path: ${DEMIS_NETWORK_FHIR_STORAGE_WRITER_CONTEXT_PATH:/notification-clearing-api/fhir/}
   pseudo:
     url: ${DEMIS_NETWORK_ARS_PSEUDO_SERVICE_ADDRESS:http://surveillance-pseudonym-service-ars.demis.svc.cluster.local}
+  futs:
+    url: ${DEMIS_NETWORK_FUTS_SERVICE_ADDRESS:http://futs.demis.svc.cluster.local}
+    fhir-package: ars
+  sentinel:
+    enabled: ${FEATURE_FLAG_ARS_SENTINEL_ENABLED:false}
+    cache-refresh-after-write: 1h
+    types:
+      MEASLES:
+        code-value-set: "https://demis.rki.de/fhir/ars/ValueSet/testMasernLOINC"
+        value-value-set: "https://demis.rki.de/fhir/ars/ValueSet/antwortMasernSNOMED"
+      CHLAMYDIA:
+        code-value-set: "https://demis.rki.de/fhir/ars/ValueSet/testChlamydienLOINC"
+        value-value-set: "https://demis.rki.de/fhir/ars/ValueSet/antwortChlamydienSNOMED"
 
 base:
   fhir:

@@ -31,7 +31,9 @@ import static de.gematik.demis.ars.service.exception.ServiceCallErrorCode.PSEUDO
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import de.gematik.demis.service.base.feign.annotations.ErrorCode;
+import de.gematik.demis.service.base.feign.annotations.HttpStatusExceptionMapping;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -43,5 +45,8 @@ public interface SurveillancePseudonymServiceClient {
       consumes = APPLICATION_JSON_VALUE,
       produces = APPLICATION_JSON_VALUE)
   @ErrorCode(PSEUDO)
+  @HttpStatusExceptionMapping(
+      status = HttpStatus.UNPROCESSABLE_CONTENT,
+      exception = PseudonymsBelongsToDifferentChainsException.class)
   PseudonymResponse createPseudonym(@RequestBody final PseudonymRequest input);
 }

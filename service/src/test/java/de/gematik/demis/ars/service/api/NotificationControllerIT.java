@@ -27,9 +27,12 @@ package de.gematik.demis.ars.service.api;
  * #L%
  */
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.BUNDLE_IDENTIFIER_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.OPERATION_OUTCOME_PARAMETER_NAME;
 import static de.gematik.demis.ars.service.api.FhirParametersResponseMapper.SPECIMEN_IDENTIFIER_PARAMETER_NAME;
+import static de.gematik.demis.ars.service.api.NotificationControllerIT.NotificationController_DEFAULT.FUTS;
 import static de.gematik.demis.ars.service.utils.TestUtils.ARS_NOTIFICATION_DUPLICATE_PATIENT_IDENTIFIER_JSON;
 import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PACKAGE;
 import static de.gematik.demis.ars.service.utils.TestUtils.HEADER_FHIR_PACKAGE_VERSION;
@@ -47,6 +50,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -61,14 +65,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import com.jayway.jsonpath.DocumentContext;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.jayway.jsonpath.JsonPath;
 import de.gematik.demis.ars.service.exception.ArsServiceException;
 import de.gematik.demis.ars.service.exception.ErrorCode;
 import de.gematik.demis.ars.service.service.NotificationService;
 import de.gematik.demis.ars.service.service.fss.FhirStorageServiceClient;
 import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymResponse;
+import de.gematik.demis.ars.service.service.pseudonymisation.PseudonymsBelongsToDifferentChainsException;
 import de.gematik.demis.ars.service.service.pseudonymisation.SurveillancePseudonymServiceClient;
+import de.gematik.demis.ars.service.service.sentinel.terminology.ValueSet;
 import de.gematik.demis.ars.service.service.validation.ValidationServiceClient;
 import de.gematik.demis.ars.service.utils.TestUtils;
 import de.gematik.demis.service.base.error.ServiceCallException;
@@ -76,11 +83,15 @@ import de.gematik.demis.service.base.error.rest.ErrorFieldProvider;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.minidev.json.JSONArray;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.junit.jupiter.api.Nested;
@@ -100,7 +111,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.MultiValueMap;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
+import org.wiremock.spring.InjectWireMock;
 
 class NotificationControllerIT {
 
@@ -109,6 +124,8 @@ class NotificationControllerIT {
       "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
   private static final TestUtils testUtil = new TestUtils();
   private static final String ERROR_MESSAGE_DUPLICATE_PSEUDONYMS = "Pseudonyms must be different";
+  private static final String ERROR_MESSAGE_PSEUDONYMS_BELONGS_TO_DIFFERENT_CHAINS =
+      "Pseudonyms must not belong to different patients";
   private static final String ERROR_ID = "fab6005e-5686-4b7b-b6ee-98b0e98a9d42";
 
   private IParser determineParser(final String acceptType) {
@@ -140,9 +157,17 @@ class NotificationControllerIT {
 
   @Nested
   @ActiveProfiles("without-database")
-  @SpringBootTest(properties = {"feature.flag.move-error-id-to-diagnostics=true"})
+  @SpringBootTest(
+      properties = {"feature.flag.move-error-id-to-diagnostics=true", "ars.sentinel.enabled=true"})
   @AutoConfigureMockMvc
+  @EnableWireMock(
+      @ConfigureWireMock(
+          name = FUTS,
+          filesUnderClasspath = "wiremock/futs",
+          baseUrlProperties = "ars.futs.url"))
   class NotificationController_DEFAULT {
+
+    static final String FUTS = "futs";
 
     @Value("${ars.context-path}")
     private String contextPath;
@@ -318,14 +343,7 @@ class NotificationControllerIT {
     @SneakyThrows
     void shouldReturn500IfFssThrowsException() {
       when(fssClient.sendNotification(anyString())).thenThrow(ServiceCallException.class);
-      mockMvc
-          .perform(
-              post(contextPath + NOTIFICATION_URL)
-                  .header("Authorization", TEST_TOKEN)
-                  .contentType(APPLICATION_JSON_VALUE)
-                  .accept(APPLICATION_JSON_VALUE)
-                  .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)))
-          .andExpect(status().isInternalServerError());
+      sendValidRequest().andExpect(status().isInternalServerError());
     }
 
     @ParameterizedTest
@@ -361,60 +379,48 @@ class NotificationControllerIT {
     }
 
     @Test
-    void shouldRemoveSentinelDataBeforeSendingToFss() throws Exception {
-      ArgumentCaptor<String> bundleCaptor = ArgumentCaptor.forClass(String.class);
-      String sentinelNotification =
-          testUtil.readFileToString(TestUtils.ARS_NOTIFICATION_SENTINEL_JSON);
-
+    void shouldReturn422_ifPseudonymsBelongsToDifferentChains() throws Exception {
       when(validationClient.validateJsonBundle(any(), anyString()))
           .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
-      mockPseudoServiceOkay();
-      when(fssClient.sendNotification(bundleCaptor.capture()))
-          .thenReturn(ResponseEntity.ok().build());
+      when(pseudonymClient.createPseudonym(any()))
+          .thenThrow(PseudonymsBelongsToDifferentChainsException.class);
+      mockErrorUuid();
 
-      mockMvc
-          .perform(
-              post(contextPath + NOTIFICATION_URL)
-                  .header("Authorization", TEST_TOKEN)
-                  .contentType(APPLICATION_JSON_VALUE)
-                  .accept(APPLICATION_JSON_VALUE)
-                  .content(sentinelNotification))
-          .andExpect(status().isOk());
+      MvcResult mvcResult = sendValidRequest().andExpect(status().is(422)).andReturn();
 
-      String capturedBundle = bundleCaptor.getValue();
-      assertSentinelDataIsRemoved(capturedBundle);
+      final var expectedIssue = new OperationOutcomeIssueComponent();
+      expectedIssue
+          .setSeverity(OperationOutcome.IssueSeverity.ERROR)
+          .setCode(OperationOutcome.IssueType.PROCESSING)
+          .setDetails(
+              new CodeableConcept().setCoding(List.of(new Coding().setCode("INVALID_PSEUDONYMS"))))
+          .setDiagnostics(
+              ERROR_MESSAGE_PSEUDONYMS_BELONGS_TO_DIFFERENT_CHAINS + " (" + ERROR_ID + ")");
+
+      assertResponse(
+          mvcResult.getResponse().getContentAsString(), APPLICATION_JSON_VALUE, expectedIssue);
     }
 
-    private void assertSentinelDataIsRemoved(String capturedBundle) {
-      DocumentContext jsonContext = JsonPath.parse(capturedBundle);
+    @Test
+    @SneakyThrows
+    void shouldReturn500AndSendNothingToFss_ifPseudoServiceThrowsException() {
+      when(validationClient.validateJsonBundle(any(), anyString()))
+          .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+      when(pseudonymClient.createPseudonym(any()))
+          .thenThrow(new ServiceCallException("just for test", "Pseudo", 500, null));
 
-      assertThat(
-              (JSONArray)
-                  jsonContext.read(
-                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'Coverage')]"))
-          .as("Coverage resources is removed")
-          .isEmpty();
+      sendValidRequest().andExpect(status().is(502));
 
-      assertThat(
-              (JSONArray)
-                  jsonContext.read(
-                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'Patient')].resource.address"))
-          .as("Patient address is removed")
-          .isEmpty();
+      verifyNoInteractions(fssClient);
+    }
 
-      assertThat(
-              (JSONArray)
-                  jsonContext.read(
-                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'ServiceRequest')].resource.insurance"))
-          .as("ServiceRequest insurance is removed")
-          .isEmpty();
-
-      assertThat(
-              (JSONArray)
-                  jsonContext.read(
-                      "$.entry[0].resource.entry[?(@.resource.resourceType == 'ServiceRequest')].resource.reasonCode"))
-          .as("ServiceRequest reasonCodes are removed")
-          .isEmpty();
+    private ResultActions sendValidRequest() throws Exception {
+      return mockMvc.perform(
+          post(contextPath + NOTIFICATION_URL)
+              .header("Authorization", TEST_TOKEN)
+              .contentType(APPLICATION_JSON_VALUE)
+              .accept(APPLICATION_JSON_VALUE)
+              .content(testUtil.readFileToString(VALID_ARS_NOTIFICATION_JSON)));
     }
 
     @Test
@@ -488,6 +494,131 @@ class NotificationControllerIT {
       assertThat(headerCaptor.getValue())
           .extractingByKey(HEADER_FHIR_PACKAGE_VERSION)
           .isEqualTo(List.of(apiVersion));
+    }
+
+    @Nested
+    class SentinelTest {
+      // Observation.code in ARS_NOTIFICATION_SENTINEL_JSON (not part of any sentinel value set)
+      private static final String NO_SPECIAL_SENTINEL_TYPE_CODE = "41852-5";
+      // codes must match with src/test/resources/wiremock/futs/mappings/sentinel-value-sets.json
+      private static final String MEASLES_CODE = "MAS-CODE";
+      private static final String CHLAMYDIA_CODE = "CHY-CODE";
+
+      @InjectWireMock(FUTS)
+      private WireMockServer futsServer;
+
+      @Autowired private LoadingCache<String, ValueSet> sentinelValueSetCache;
+
+      @Test
+      void cacheShouldBePrefilledAndUsed() throws Exception {
+        // assert cache warm up
+        assertThat(sentinelValueSetCache.asMap()).isNotEmpty();
+
+        sendSentinelNotificationAndCaptureFssBundle(NO_SPECIAL_SENTINEL_TYPE_CODE);
+
+        // During request processing FUTS must not be called. The cache is used.
+        futsServer.verify(0, anyRequestedFor(anyUrl()));
+      }
+
+      @Test
+      void shouldRemoveAllSentinelDataBeforeSendingToFssIfNoSentinelTypeMatches() throws Exception {
+        final String capturedBundle =
+            sendSentinelNotificationAndCaptureFssBundle(NO_SPECIAL_SENTINEL_TYPE_CODE);
+
+        assertRemoved(capturedBundle, SentinelPath.COVERAGE);
+        assertRemoved(capturedBundle, SentinelPath.PATIENT_ADDRESS);
+        assertRemoved(capturedBundle, SentinelPath.SERVICE_REQUEST_INSURANCE);
+        assertRemoved(capturedBundle, SentinelPath.SERVICE_REQUEST_REASON_CODE);
+      }
+
+      @Test
+      void shouldKeepOnlyReasonCodeBeforeSendingToFssIfMeaslesMatches() throws Exception {
+        final String capturedBundle = sendSentinelNotificationAndCaptureFssBundle(MEASLES_CODE);
+
+        assertRemoved(capturedBundle, SentinelPath.COVERAGE);
+        assertRemoved(capturedBundle, SentinelPath.PATIENT_ADDRESS);
+        assertRemoved(capturedBundle, SentinelPath.SERVICE_REQUEST_INSURANCE);
+        assertPresent(capturedBundle, SentinelPath.SERVICE_REQUEST_REASON_CODE);
+      }
+
+      @Test
+      void shouldKeepAllSentinelDataBeforeSendingToFssIfChlamydiaMatches() throws Exception {
+        final String capturedBundle = sendSentinelNotificationAndCaptureFssBundle(CHLAMYDIA_CODE);
+
+        assertPresent(capturedBundle, SentinelPath.COVERAGE);
+        assertPresent(capturedBundle, SentinelPath.PATIENT_ADDRESS);
+        assertPresent(capturedBundle, SentinelPath.SERVICE_REQUEST_INSURANCE);
+        assertPresent(capturedBundle, SentinelPath.SERVICE_REQUEST_REASON_CODE);
+      }
+
+      /** Replaces Observation.code of the first Observation in the bundle. */
+      private String replaceFirstObservationCode(final String bundleAsJson, final String code) {
+        final Bundle bundle = testUtil.jsonToResource(bundleAsJson, Bundle.class);
+        bundle.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(Observation.class::isInstance)
+            .map(Observation.class::cast)
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No Observation in sentinel notification"))
+            .getCode()
+            .getCodingFirstRep()
+            .setCode(code);
+        return testUtil.resourceToJson(bundle);
+      }
+
+      private String sendSentinelNotificationAndCaptureFssBundle(final String observationCode)
+          throws Exception {
+        final String sentinelNotification =
+            replaceFirstObservationCode(
+                testUtil.readFileToString(TestUtils.ARS_NOTIFICATION_SENTINEL_JSON),
+                observationCode);
+
+        when(validationClient.validateJsonBundle(any(), anyString()))
+            .thenReturn(testUtil.createOutcomeResponse(INFORMATION));
+        mockPseudoServiceOkay();
+
+        final ArgumentCaptor<String> bundleCaptor = ArgumentCaptor.forClass(String.class);
+        when(fssClient.sendNotification(bundleCaptor.capture()))
+            .thenReturn(ResponseEntity.ok().build());
+
+        mockMvc
+            .perform(
+                post(contextPath + NOTIFICATION_URL)
+                    .header("Authorization", TEST_TOKEN)
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .accept(APPLICATION_JSON_VALUE)
+                    .content(sentinelNotification))
+            .andExpect(status().isOk());
+
+        return bundleCaptor.getValue();
+      }
+
+      private void assertRemoved(final String bundle, final SentinelPath path) {
+        assertThat(read(bundle, path)).as(path + " is removed").isEmpty();
+      }
+
+      private void assertPresent(final String bundle, final SentinelPath path) {
+        assertThat(read(bundle, path)).as(path + " is kept").isNotEmpty();
+      }
+
+      private JSONArray read(final String bundle, final SentinelPath path) {
+        return JsonPath.parse(bundle).read(path.getJsonPath());
+      }
+
+      /** JsonPaths into the bundle for the data affected by the sentinel cleanup. */
+      @RequiredArgsConstructor
+      @Getter
+      private enum SentinelPath {
+        COVERAGE("$.entry[0].resource.entry[?(@.resource.resourceType == 'Coverage')]"),
+        PATIENT_ADDRESS(
+            "$.entry[0].resource.entry[?(@.resource.resourceType == 'Patient')].resource.address"),
+        SERVICE_REQUEST_INSURANCE(
+            "$.entry[0].resource.entry[?(@.resource.resourceType == 'ServiceRequest')].resource.insurance"),
+        SERVICE_REQUEST_REASON_CODE(
+            "$.entry[0].resource.entry[?(@.resource.resourceType == 'ServiceRequest')].resource.reasonCode");
+
+        private final String jsonPath;
+      }
     }
   }
 

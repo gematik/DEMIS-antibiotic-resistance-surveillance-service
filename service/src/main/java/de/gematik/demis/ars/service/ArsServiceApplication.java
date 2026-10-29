@@ -28,6 +28,7 @@ package de.gematik.demis.ars.service;
  */
 
 import de.gematik.demis.ars.service.batchprocessing.config.BatchResultProperties;
+import de.gematik.demis.ars.service.service.sentinel.SentinelConfigurationProperties;
 import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -39,7 +40,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 @SpringBootApplication
 @EnableDefaultApiSpecConfig
-@EnableConfigurationProperties(BatchResultProperties.class)
+@EnableConfigurationProperties({BatchResultProperties.class, SentinelConfigurationProperties.class})
 @Slf4j
 public class ArsServiceApplication {
 
