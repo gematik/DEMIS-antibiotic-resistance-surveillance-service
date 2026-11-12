@@ -47,6 +47,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Quantity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -180,6 +181,26 @@ class SentinelTypeDetectionTest {
             VALUE_SETS.get(valueSetNames.valueValueSet()).getLast());
 
     executeTest(of(sentinelType), randomObservation, observation);
+  }
+
+  @Test
+  void noSentinelIfValueIsQuantity() {
+    final Observation observation = new Observation();
+    observation.setValue(
+        new Quantity().setValue(5).setUnit("mg").setSystem("http://unitsofmeasure.org"));
+
+    executeTest(EnumSet.noneOf(SentinelType.class), observation);
+  }
+
+  @ParameterizedTest
+  @EnumSource(SentinelType.class)
+  void shouldDetectSentinelByCodeIfValueIsQuantity(final SentinelType sentinelType) {
+    final var valueSetNames = VALUESET_NAMES.get(sentinelType);
+    final Observation observation =
+        observationWithCodeAndValue(VALUE_SETS.get(valueSetNames.codeValueSet()).getLast(), null);
+    observation.setValue(new Quantity().setValue(5).setUnit("mg"));
+
+    executeTest(of(sentinelType), observation);
   }
 
   @Test

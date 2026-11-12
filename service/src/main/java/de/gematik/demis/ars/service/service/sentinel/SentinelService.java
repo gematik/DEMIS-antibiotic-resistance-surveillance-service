@@ -78,7 +78,7 @@ public class SentinelService {
       return;
     }
 
-    final Set<SentinelType> detectedTypes = typeDetection.detect(bundle);
+    final Set<SentinelType> detectedTypes = detectTypes(bundle);
     final Set<CleanupStep> cleanupSteps = determineCleanupSteps(detectedTypes);
 
     final Set<String> removedResources = new LinkedHashSet<>();
@@ -91,6 +91,15 @@ public class SentinelService {
 
     if (!removedResources.isEmpty()) {
       log.info("Sentinel information removed: {}", removedResources);
+    }
+  }
+
+  private Set<SentinelType> detectTypes(final Bundle bundle) {
+    try {
+      return typeDetection.detect(bundle);
+    } catch (final RuntimeException ex) {
+      log.error("error detecting sentinel types. Proceed with no special sentinel type.", ex);
+      return Set.of();
     }
   }
 

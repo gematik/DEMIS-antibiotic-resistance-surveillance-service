@@ -27,12 +27,16 @@ package de.gematik.demis.ars.service.service.sentinel;
  * #L%
  */
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import de.gematik.demis.ars.service.utils.LogListener;
 import java.util.Set;
 import org.hl7.fhir.r4.model.Bundle;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,6 +100,26 @@ class SentinelServiceTest {
     verify(cleanupService).removePatientAddress(bundle);
     verify(cleanupService).removeCoverage(bundle);
     verify(cleanupService).removeReasonCodes(bundle);
+  }
+
+  @Test
+  void shouldRemoveAllDataAndLogErrorWhenTypeDetectionThrowsRuntimeException() {
+    final var logAppender = LogListener.listenToLog(SentinelService.class.getName());
+    final var exception = new IllegalStateException("detection failed");
+    when(typeDetection.detect(any())).thenThrow(exception);
+
+    assertDoesNotThrow(() -> underTest.removeSentinelData(bundle));
+
+    verify(cleanupService).removePatientAddress(bundle);
+    verify(cleanupService).removeCoverage(bundle);
+    verify(cleanupService).removeReasonCodes(bundle);
+    assertThat(logAppender.list)
+        .anySatisfy(
+            event -> {
+              assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+              assertThat(event.getThrowableProxy()).isNotNull();
+              assertThat(event.getThrowableProxy().getMessage()).isEqualTo("detection failed");
+            });
   }
 
   private void executeTest(SentinelType... detectedTypes) {
