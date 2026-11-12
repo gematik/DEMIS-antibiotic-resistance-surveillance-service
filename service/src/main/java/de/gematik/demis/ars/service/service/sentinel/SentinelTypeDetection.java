@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Observation;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 /** Detects sentinel types by matching Observation codes and values against ValueSets. */
@@ -64,7 +65,7 @@ class SentinelTypeDetection {
                   observation ->
                       isContainedInValueSet(observation.getCode(), codeValueSet)
                           || isContainedInValueSet(
-                              observation.getValueCodeableConcept(), valueValueSet));
+                              getValueCodeableConcept(observation), valueValueSet));
       if (matches) {
         detectedTypes.add(sentinelType);
       }
@@ -81,8 +82,13 @@ class SentinelTypeDetection {
         .toList();
   }
 
+  @Nullable
+  private CodeableConcept getValueCodeableConcept(final Observation observation) {
+    return observation.hasValueCodeableConcept() ? observation.getValueCodeableConcept() : null;
+  }
+
   private boolean isContainedInValueSet(
-      final CodeableConcept codeableConcept, final ValueSet valueSet) {
+      @Nullable final CodeableConcept codeableConcept, final ValueSet valueSet) {
     return codeableConcept != null
         && codeableConcept.getCoding().stream().anyMatch(valueSet::contains);
   }

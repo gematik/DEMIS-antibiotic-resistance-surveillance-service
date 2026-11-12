@@ -2,6 +2,10 @@
 
 # Release notes Antibiotic-Resistance-Surveillance-Service
 
+## Release 1.7.1
+- Updated minor/patch versions of dependencies
+- bug in sentinel type detection fixed
+
 ## Release 1.7.0
 - Updated minor/patch versions of dependencies
 - sentinels

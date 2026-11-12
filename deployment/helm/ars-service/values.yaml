@@ -75,6 +75,7 @@ customEnvVars:
   PARAM_LIQUIBASE_DB_USER_PURGER: ars-bulk-stats-purger
   SPRING_LIQUIBASE_ENABLED: false
   FEATURE_FLAG_MOVE_ERROR_ID_TO_DIAGNOSTICS: "false"
+  FEATURE_FLAG_ARS_SENTINEL_ENABLED: "false"
 
 # RabbitMQ credentials secret (injected via envFrom)
 # Secret must contain keys: SPRING_RABBITMQ_USERNAME, SPRING_RABBITMQ_PASSWORD, SPRING_RABBITMQ_VIRTUAL_HOST
